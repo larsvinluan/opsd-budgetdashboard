@@ -970,7 +970,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_DATA_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+    const APPS_SCRIPT_DATA_URL = 'https://script.google.com/macros/s/AKfycbx8jsMV6AmMM2S4LEYkmscV4FUE5h2Uhg_TXPyIhYUZlkr5Ko2nzBvyd-p6YuYvOKN-/exec';
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
 
@@ -1044,7 +1044,7 @@
 
     function loadDataFromAppsScript(forceRefresh) {
       return new Promise(function(resolve, reject) {
-        if (!APPS_SCRIPT_DATA_URL || APPS_SCRIPT_DATA_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        if (!APPS_SCRIPT_DATA_URL || APPS_SCRIPT_DATA_URL === 'https://script.google.com/macros/s/AKfycbx8jsMV6AmMM2S4LEYkmscV4FUE5h2Uhg_TXPyIhYUZlkr5Ko2nzBvyd-p6YuYvOKN-/exec') {
           reject(new Error('Please replace APPS_SCRIPT_DATA_URL with your deployed Google Apps Script Web App URL.'));
           return;
         }
