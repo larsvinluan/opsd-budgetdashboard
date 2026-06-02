@@ -1044,7 +1044,7 @@
 
     function loadDataFromAppsScript(forceRefresh) {
       return new Promise(function(resolve, reject) {
-        if (!APPS_SCRIPT_DATA_URL || APPS_SCRIPT_DATA_URL === 'https://script.google.com/macros/s/AKfycbx8jsMV6AmMM2S4LEYkmscV4FUE5h2Uhg_TXPyIhYUZlkr5Ko2nzBvyd-p6YuYvOKN-/exec') {
+        if (!APPS_SCRIPT_DATA_URL || APPS_SCRIPT_DATA_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
           reject(new Error('Please replace APPS_SCRIPT_DATA_URL with your deployed Google Apps Script Web App URL.'));
           return;
         }
@@ -1580,12 +1580,15 @@
       const map = {};
 
       rows.forEach(row => {
-        const projectName = row.project || '';
+        const projectName = String(row.project || '').trim();
         const lower = projectName.toLowerCase();
 
-        const displayName = lower.startsWith('psg (') || lower.includes('psg development')
-          ? 'PSG Dev'
-          : projectName;
+        const isPsgProject =
+          lower.includes('psg') ||
+          lower.includes('programs standards and guidelines') ||
+          lower.includes('policy standards and guidelines');
+
+        const displayName = isPsgProject ? 'PSG Dev' : projectName;
 
         if (!map[displayName]) {
           map[displayName] = {
