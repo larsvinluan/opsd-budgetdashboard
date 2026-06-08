@@ -1055,7 +1055,7 @@
         const separator = APPS_SCRIPT_DATA_URL.indexOf('?') >= 0 ? '&' : '?';
         const url = APPS_SCRIPT_DATA_URL
           + separator
-          + 'mode=data'
+          + 'action=getDashboardData'
           + '&fundingSource=All'
           + '&forceRefresh=' + encodeURIComponent(forceRefresh ? 'true' : 'false')
           + '&callback=' + encodeURIComponent(callbackName)
