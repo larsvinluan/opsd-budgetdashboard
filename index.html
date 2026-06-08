@@ -1049,22 +1049,10 @@
           return;
         }
 
-        const callbackName = 'jsonpDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+        const callbackName = 'dashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
         const script = document.createElement('script');
-
-        const separator = APPS_SCRIPT_DATA_URL.indexOf('?') >= 0 ? '&' : '?';
-        const url = APPS_SCRIPT_DATA_URL
-          + separator
-          + 'action=getDashboardData'
-          + '&fundingSource=All'
-          + '&forceRefresh=' + encodeURIComponent(forceRefresh ? 'true' : 'false')
-          + '&callback=' + encodeURIComponent(callbackName)
-          + '&_=' + Date.now();
-
-        const timeout = setTimeout(function() {
-          cleanup();
-          reject(new Error('Data loading timed out. Please check your Apps Script Web App deployment and permissions.'));
-        }, 30000);
+        let timeout = null;
+        let finished = false;
 
         window[callbackName] = function(response) {
           cleanup();
@@ -1074,24 +1062,46 @@
             return;
           }
 
-          if (response.success === false) {
-            reject(new Error(response.error || 'Apps Script returned an error.'));
+          if (response.success === false || response.error === true) {
+            reject(new Error(response.message || response.error || response.errorText || 'Apps Script returned an error.'));
             return;
           }
 
           resolve(response.data || response);
         };
 
+        const separator = APPS_SCRIPT_DATA_URL.indexOf('?') >= 0 ? '&' : '?';
+
+        script.src =
+          APPS_SCRIPT_DATA_URL +
+          separator +
+          'mode=data' +
+          '&fundingSource=All' +
+          '&forceRefresh=' + encodeURIComponent(forceRefresh ? 'true' : 'false') +
+          '&callback=' + encodeURIComponent(callbackName) +
+          '&cacheBust=' + Date.now();
+
+        script.async = true;
+
         script.onerror = function() {
           cleanup();
-          reject(new Error('Unable to load data from Apps Script. Check the Web App URL and deployment access.'));
+          reject(new Error('Unable to load data from Apps Script. The Web App URL is reachable directly, but the GitHub page could not load it as JSONP.'));
         };
 
-        script.src = url;
-        document.body.appendChild(script);
+        timeout = setTimeout(function() {
+          cleanup();
+          reject(new Error('Data loading timed out. Apps Script did not return JSONP callback.'));
+        }, 45000);
+
+        document.head.appendChild(script);
 
         function cleanup() {
-          clearTimeout(timeout);
+          if (finished) return;
+          finished = true;
+
+          if (timeout) {
+            clearTimeout(timeout);
+          }
 
           if (script && script.parentNode) {
             script.parentNode.removeChild(script);
