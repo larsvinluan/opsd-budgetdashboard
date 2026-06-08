@@ -617,6 +617,34 @@
     .allocation-full { color: #38d9ff; font-weight: 800; }
     .allocation-over { color: #ff6b88; font-weight: 800; }
 
+    .view-all-wrap {
+      border-top: 1px solid rgba(52, 223, 255, 0.22);
+      background: rgba(2, 12, 32, 0.72);
+      padding: 16px 10px 10px;
+      text-align: center;
+    }
+
+    .view-all-button {
+      display: inline-block;
+      border: none;
+      background: transparent;
+      color: #1ea7ff;
+      font-size: 18px;
+      font-weight: 900;
+      text-decoration: underline;
+      text-underline-offset: 5px;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    .auto-update-note {
+      margin-top: 18px;
+      color: rgba(255,255,255,0.78);
+      font-size: 11px;
+      font-weight: 400;
+    }
+
     .footer {
       margin: 9px 8px 0;
       display: flex;
@@ -749,7 +777,7 @@
 
             <div class="hero-title-block">
               <h1>OPSD Budget Summary Dashboard</h1>
-              <div class="eyebrow">Budget Monitoring System</div>
+              <div class="eyebrow">Annual/Quarterly Budget Monitoring System</div>
             </div>
           </div>
 
@@ -837,7 +865,7 @@
         <div>
           <div class="label">Daily Expenses</div>
           <div class="value" id="dailyExpenses">₱0.00</div>
-          <div class="note"><b>Latest</b> daily expense per project</div>
+          <div class="note"><b>Latest</b> daily RBA based on recent date</div>
         </div>
       </div>
 
@@ -900,8 +928,8 @@
       <div class="panel">
         <div class="panel-title">
           <div class="logo-badge">📈</div>
-          <h2>Daily Expense per Project</h2>
-          <span class="tag">Latest daily expense</span>
+          <h2>Approved Budget per Project</h2>
+          <span class="tag">Alloted budget per quarter</span>
         </div>
         <div class="chart-box">
           <canvas id="dailyExpenseChart"></canvas>
@@ -961,6 +989,15 @@
         </thead>
         <tbody id="expenseRecordTable"></tbody>
       </table>
+
+      <div class="view-all-wrap">
+        <button id="viewAllDataButton" class="view-all-button" type="button">
+          View All Data ›
+        </button>
+        <div class="auto-update-note">
+          Dashboard updates automatically without page refresh.
+        </div>
+      </div>
     </section>
 
     <div class="footer">
@@ -970,9 +1007,10 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_DATA_URL = 'https://script.google.com/macros/s/AKfycbyjfSmwZprQaJafKjMbkTb8v5qFfskgIQ2y1I9ofGeCZ3Hw2LWjndWwsRvyKUUHVHAx/exec';
+    const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbyjfSmwZprQaJafKjMbkTb8v5qFfskgIQ2y1I9ofGeCZ3Hw2LWjndWwsRvyKUUHVHAx/exec';
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
+    const AUTO_REFRESH_INTERVAL_MS = 120000;
 
     let dailyExpenseChart;
     let remainingBudgetChart;
@@ -985,6 +1023,7 @@
     let loadingStartedAt = Date.now();
     let isDashboardLoadedOnce = false;
     let isDashboardLoading = false;
+    let isViewingAllData = false;
 
     const chartColors = [
       '#38d9ff',
@@ -1003,8 +1042,30 @@
     bindMainFilters();
     loadDashboard(false);
 
+    setInterval(function() {
+      if (!isDashboardLoading) {
+        loadDashboard(false);
+      }
+    }, AUTO_REFRESH_INTERVAL_MS);
+
+    function buildAppsScriptUrl(forceRefresh) {
+      const url = new URL(APPS_SCRIPT_API_URL);
+      url.searchParams.set('action', 'data');
+      url.searchParams.set('forceRefresh', forceRefresh === true ? 'true' : 'false');
+      url.searchParams.set('fundingSource', 'All');
+      url.searchParams.set('_t', Date.now());
+      return url.toString();
+    }
+
     function loadDashboard(forceRefresh) {
       if (isDashboardLoading) return;
+
+      if (!APPS_SCRIPT_API_URL || APPS_SCRIPT_API_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        showError({
+          message: 'Please replace APPS_SCRIPT_API_URL with your deployed Apps Script Web App URL ending in /exec.'
+        });
+        return;
+      }
 
       isDashboardLoading = true;
       loadingStartedAt = Date.now();
@@ -1021,7 +1082,18 @@
         setDashboardRefreshState(true);
       }
 
-      loadDataFromAppsScript(forceRefresh === true)
+      fetch(buildAppsScriptUrl(forceRefresh === true), {
+        method: 'GET',
+        cache: 'no-store',
+        redirect: 'follow'
+      })
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Apps Script API error: HTTP ' + response.status);
+          }
+
+          return response.json();
+        })
         .then(function(data) {
           const elapsed = Date.now() - loadingStartedAt;
           const waitTime = isDashboardLoadedOnce ? 0 : Math.max(0, MIN_LOADING_TIME - elapsed);
@@ -1042,68 +1114,21 @@
         });
     }
 
-    function loadDataFromAppsScript(forceRefresh) {
-      return new Promise(function(resolve, reject) {
-        if (!APPS_SCRIPT_DATA_URL || APPS_SCRIPT_DATA_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-          reject(new Error('Please replace APPS_SCRIPT_DATA_URL with your deployed Google Apps Script Web App URL.'));
-          return;
-        }
+    function getLatestDailyRbaTotal(expenseRows) {
+      expenseRows = expenseRows || [];
 
-        const callbackName = 'jsonpDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-        const script = document.createElement('script');
+      const latestDateSort = expenseRows.reduce((latest, row) => {
+        const rowDateSort = Number(row.dateSort || 0);
+        return rowDateSort > latest ? rowDateSort : latest;
+      }, 0);
 
-        const separator = APPS_SCRIPT_DATA_URL.indexOf('?') >= 0 ? '&' : '?';
-        const url = APPS_SCRIPT_DATA_URL
-          + separator
-          + 'mode=data'
-          + '&fundingSource=All'
-          + '&forceRefresh=' + encodeURIComponent(forceRefresh ? 'true' : 'false')
-          + '&callback=' + encodeURIComponent(callbackName)
-          + '&_=' + Date.now();
+      if (latestDateSort <= 0) return 0;
 
-        const timeout = setTimeout(function() {
-          cleanup();
-          reject(new Error('Data loading timed out. Please check your Apps Script Web App deployment and permissions.'));
-        }, 30000);
-
-        window[callbackName] = function(response) {
-          cleanup();
-
-          if (!response) {
-            reject(new Error('No data returned from Apps Script.'));
-            return;
-          }
-
-          if (response.success === false) {
-            reject(new Error(response.error || 'Apps Script returned an error.'));
-            return;
-          }
-
-          resolve(response.data || response);
-        };
-
-        script.onerror = function() {
-          cleanup();
-          reject(new Error('Unable to load data from Apps Script. Check the Web App URL and deployment access.'));
-        };
-
-        script.src = url;
-        document.body.appendChild(script);
-
-        function cleanup() {
-          clearTimeout(timeout);
-
-          if (script && script.parentNode) {
-            script.parentNode.removeChild(script);
-          }
-
-          try {
-            delete window[callbackName];
-          } catch (err) {
-            window[callbackName] = undefined;
-          }
-        }
-      });
+      return expenseRows
+        .filter(row => Number(row.dateSort || 0) === latestDateSort)
+        .reduce((sum, row) => {
+          return sum + Number(row.approvedRBA || 0);
+        }, 0);
     }
 
     function buildFilteredDashboardData(sourceValue) {
@@ -1132,9 +1157,7 @@
         return sum + Number(item.totalExpenses || 0);
       }, 0);
 
-      const dailyExpenses = projectSummary.reduce((sum, item) => {
-        return sum + Number(item.dailyExpense || 0);
-      }, 0);
+      const dailyExpenses = getLatestDailyRbaTotal(expenseRows);
 
       const remainingBalance = projectSummary.reduce((sum, item) => {
         return sum + Number(item.remainingBudget || 0);
@@ -1265,12 +1288,14 @@
 
       if (mainFundingSourceFilter) {
         mainFundingSourceFilter.onchange = function() {
+          isViewingAllData = false;
           renderDashboardByFundingSource(getMainFundingSourceFilterValue());
         };
       }
 
       if (mainFilterButton) {
         mainFilterButton.onclick = function() {
+          isViewingAllData = false;
           renderDashboardByFundingSource(getMainFundingSourceFilterValue());
         };
       }
@@ -1328,7 +1353,7 @@
       bindExpenseFilters();
 
       renderAllocationTable(data.allocationRows || []);
-      renderDailyExpenseChart(data.projectSummary || []);
+      renderApprovedBudgetChart(data.projectSummary || []);
       renderRemainingBudgetChart(data.projectSummary || []);
       renderExpenseRecordTable(allExpenseRows);
     }
@@ -1390,15 +1415,35 @@
       const funding = document.getElementById('expenseFundingFilter');
       const month = document.getElementById('expenseMonthFilter');
       const refresh = document.getElementById('checkNowButton');
+      const viewAllButton = document.getElementById('viewAllDataButton');
 
       search.oninput = applyExpenseFilters;
-      project.onchange = applyExpenseFilters;
-      funding.onchange = applyExpenseFilters;
-      month.onchange = applyExpenseFilters;
+
+      project.onchange = function() {
+        isViewingAllData = false;
+        applyExpenseFilters();
+      };
+
+      funding.onchange = function() {
+        isViewingAllData = false;
+        applyExpenseFilters();
+      };
+
+      month.onchange = function() {
+        isViewingAllData = false;
+        applyExpenseFilters();
+      };
 
       refresh.onclick = function() {
         loadDashboard(true);
       };
+
+      if (viewAllButton) {
+        viewAllButton.onclick = function() {
+          isViewingAllData = !isViewingAllData;
+          applyExpenseFilters();
+        };
+      }
     }
 
     function applyExpenseFilters() {
@@ -1455,9 +1500,33 @@
       });
     }
 
-    function renderDailyExpenseChart(rows) {
-      const labels = rows.map(r => r.project);
-      const values = rows.map(r => Number(r.dailyExpense || 0));
+    function getApprovedBudgetChartRows(rows) {
+      const mergedMap = {};
+      const order = [];
+
+      rows.forEach(row => {
+        const originalProject = String(row.project || '').trim();
+        const projectKey = originalProject.toUpperCase().includes('PSG') ? 'PSG' : originalProject;
+
+        if (!mergedMap[projectKey]) {
+          mergedMap[projectKey] = {
+            project: projectKey,
+            approvedBudget: 0
+          };
+          order.push(projectKey);
+        }
+
+        mergedMap[projectKey].approvedBudget += Number(row.approvedBudget || 0);
+      });
+
+      return order.map(key => mergedMap[key]);
+    }
+
+    function renderApprovedBudgetChart(rows) {
+      const chartRows = getApprovedBudgetChartRows(rows);
+
+      const labels = chartRows.map(r => r.project);
+      const values = chartRows.map(r => Number(r.approvedBudget || 0));
 
       const ctx = document.getElementById('dailyExpenseChart').getContext('2d');
 
@@ -1468,7 +1537,7 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'Daily Expense Latest',
+            label: 'Approved Budget per Project',
             data: values,
             backgroundColor: labels.map((_, i) => chartColors[i % chartColors.length]),
             borderColor: labels.map((_, i) => chartColors[i % chartColors.length]),
@@ -1515,11 +1584,32 @@
       });
     }
 
-    function renderRemainingBudgetChart(rows) {
-      const groupedRows = groupPsgOnlyForRemainingBudgetChart(rows);
+    function getRemainingBudgetChartRows(rows) {
+      const mergedMap = {};
+      const order = [];
 
-      const labels = groupedRows.map(r => r.project);
-      const values = groupedRows.map(r => Number(r.remainingBudget || 0));
+      rows.forEach(row => {
+        const originalProject = String(row.project || '').trim();
+        const projectKey = originalProject.toUpperCase().includes('PSG') ? 'PSG' : originalProject;
+
+        if (!mergedMap[projectKey]) {
+          mergedMap[projectKey] = {
+            project: projectKey,
+            remainingBudget: 0
+          };
+          order.push(projectKey);
+        }
+
+        mergedMap[projectKey].remainingBudget += Number(row.remainingBudget || 0);
+      });
+
+      return order.map(key => mergedMap[key]);
+    }
+
+    function renderRemainingBudgetChart(rows) {
+      const chartRows = getRemainingBudgetChartRows(rows);
+      const labels = chartRows.map(r => r.project);
+      const values = chartRows.map(r => Number(r.remainingBudget || 0));
 
       const ctx = document.getElementById('remainingBudgetChart').getContext('2d');
 
@@ -1576,43 +1666,25 @@
       });
     }
 
-    function groupPsgOnlyForRemainingBudgetChart(rows) {
-      const map = {};
-
-      rows.forEach(row => {
-        const projectName = String(row.project || '').trim();
-        const lower = projectName.toLowerCase();
-
-        const isPsgProject =
-          lower.includes('psg') ||
-          lower.includes('programs standards and guidelines') ||
-          lower.includes('policy standards and guidelines');
-
-        const displayName = isPsgProject ? 'PSG Dev' : projectName;
-
-        if (!map[displayName]) {
-          map[displayName] = {
-            project: displayName,
-            remainingBudget: 0
-          };
-        }
-
-        map[displayName].remainingBudget += Number(row.remainingBudget || 0);
-      });
-
-      return Object.keys(map).map(key => map[key]);
-    }
-
     function renderExpenseRecordTable(rows) {
       const tbody = document.getElementById('expenseRecordTable');
+      const viewAllButton = document.getElementById('viewAllDataButton');
+
       tbody.innerHTML = '';
 
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="7">No daily monitoring expense records found.</td></tr>';
+
+        if (viewAllButton) {
+          viewAllButton.style.display = 'none';
+        }
+
         return;
       }
 
-      rows.slice(0, 30).forEach(row => {
+      const visibleRows = isViewingAllData ? rows : rows.slice(0, 30);
+
+      visibleRows.forEach(row => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${escapeHtml(row.date)}</td>
@@ -1625,6 +1697,15 @@
         `;
         tbody.appendChild(tr);
       });
+
+      if (viewAllButton) {
+        if (rows.length > 30) {
+          viewAllButton.style.display = 'inline-block';
+          viewAllButton.textContent = isViewingAllData ? 'Show Recent Data ›' : 'View All Data ›';
+        } else {
+          viewAllButton.style.display = 'none';
+        }
+      }
     }
 
     function getAllocationStatusClass(status) {
@@ -1703,8 +1784,8 @@
       document.getElementById('loader').innerHTML = `
         <div style="max-width:780px;background:#061733;padding:25px;border-radius:18px;box-shadow:0 15px 35px rgba(0,0,0,0.35);border:1px solid rgba(255,77,109,0.45);">
           <h2 style="margin-top:0;color:#ff4d6d;">Dashboard Loading Error</h2>
-          <p style="color:#eaf4ff;">Please check Apps Script Web App URL, deployment access, and JSONP callback support.</p>
-          <pre style="white-space:pre-wrap;background:#020b1f;color:#ffffff;padding:14px;border-radius:12px;">${error.message || error}</pre>
+          <p style="color:#eaf4ff;">Please check your Apps Script Web App URL, deployment access, and Google Sheet permission.</p>
+          <pre style="white-space:pre-wrap;background:#020b1f;color:#ffffff;padding:14px;border-radius:12px;">${escapeHtml(error.message || error)}</pre>
         </div>
       `;
     }
