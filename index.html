@@ -1180,7 +1180,19 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyjfSmwZprQaJafKjMbkTb8v5qFfskgIQ2y1I9ofGeCZ3Hw2LWjndWwsRvyKUUHVHAx/exec';
+    /*
+      IMPORTANT FOR GITHUB:
+      Replace the value below with your deployed Google Apps Script Web App URL.
+
+      Example:
+      const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxxxxxx/exec';
+
+      Apps Script deployment should be:
+      Deploy > New deployment > Web app
+      Execute as: Me
+      Who has access: Anyone
+    */
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyjfSmwZprQaJafKjMbkTb8v5qFfskgIQ2y1I9ofGeCZ3Hw2LWjndWwsRvyKUUHVHAx/exec';
 
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
@@ -1239,26 +1251,6 @@
           ctx.fillText(formatPesoShort(value), point.x, point.y - 9);
           ctx.restore();
         });
-
-        const lastPoint = meta.data[meta.data.length - 1];
-
-        if (lastPoint) {
-          ctx.save();
-
-          const eteeapX = lastPoint.x - 30;
-          const eteeapY = chart.chartArea.bottom + 34;
-
-          ctx.translate(eteeapX, eteeapY);
-          ctx.rotate(-28 * Math.PI / 180);
-          ctx.font = '800 13px Segoe UI, Arial, sans-serif';
-          ctx.fillStyle = '#d5e9ff';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-          ctx.shadowBlur = 8;
-          ctx.fillText('ETEEAP', 0, 0);
-          ctx.restore();
-        }
       }
     };
 
@@ -1276,6 +1268,70 @@
         loadDashboard(false);
       }
     }, AUTO_REFRESH_INTERVAL_MS);
+
+    function getAppsScriptData(forceRefresh) {
+      return new Promise(function(resolve, reject) {
+        if (!WEB_APP_URL || WEB_APP_URL === 'PASTE_YOUR_DEPLOYED_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+          reject(new Error('Please paste your deployed Google Apps Script Web App URL in WEB_APP_URL.'));
+          return;
+        }
+
+        const callbackName = 'opSDBudgetDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+        const script = document.createElement('script');
+
+        const separator = WEB_APP_URL.indexOf('?') >= 0 ? '&' : '?';
+        const url = WEB_APP_URL
+          + separator
+          + 'action=dashboardData'
+          + '&fundingSource=All'
+          + '&forceRefresh=' + encodeURIComponent(forceRefresh === true ? 'true' : 'false')
+          + '&callback=' + encodeURIComponent(callbackName)
+          + '&_=' + Date.now();
+
+        let completed = false;
+
+        const timeout = setTimeout(function() {
+          if (completed) return;
+
+          completed = true;
+          cleanup();
+          reject(new Error('Request timed out. Please check your Apps Script Web App deployment and access permission.'));
+        }, 60000);
+
+        window[callbackName] = function(data) {
+          if (completed) return;
+
+          completed = true;
+          clearTimeout(timeout);
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = function() {
+          if (completed) return;
+
+          completed = true;
+          clearTimeout(timeout);
+          cleanup();
+          reject(new Error('Unable to load data from Apps Script. Please check the Web App URL and deployment access.'));
+        };
+
+        function cleanup() {
+          try {
+            delete window[callbackName];
+          } catch (err) {
+            window[callbackName] = undefined;
+          }
+
+          if (script && script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+        }
+
+        script.src = url;
+        document.body.appendChild(script);
+      });
+    }
 
     function fitDashboardToScreen() {
       const dashboard = document.getElementById('dashboard');
@@ -1316,10 +1372,8 @@
         fitDashboardToScreen();
       }
 
-      requestDashboardDataFromAppsScript(
-        forceRefresh === true,
-        'All',
-        function(data) {
+      getAppsScriptData(forceRefresh === true)
+        .then(function(data) {
           const elapsed = Date.now() - loadingStartedAt;
           const waitTime = isDashboardLoadedOnce ? 0 : Math.max(0, MIN_LOADING_TIME - elapsed);
 
@@ -1331,72 +1385,12 @@
             masterDashboardData = data;
             renderDashboardByFundingSource(getMainFundingSourceFilterValue());
           }, waitTime);
-        },
-        function(error) {
+        })
+        .catch(function(error) {
           isDashboardLoading = false;
           setDashboardRefreshState(false);
           showError(error);
-        }
-      );
-    }
-
-    function requestDashboardDataFromAppsScript(forceRefresh, fundingSource, successHandler, failureHandler) {
-      if (!APPS_SCRIPT_WEB_APP_URL) {
-        failureHandler({
-          message: 'Missing Apps Script Web App URL.'
         });
-        return;
-      }
-
-      const callbackName = 'opSdBudgetDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-      const script = document.createElement('script');
-
-      const timeout = setTimeout(function() {
-        cleanup();
-        failureHandler({
-          message: 'Request timed out. Please check your Apps Script Web App deployment access.'
-        });
-      }, 60000);
-
-      window[callbackName] = function(data) {
-        cleanup();
-        successHandler(data);
-      };
-
-      function cleanup() {
-        clearTimeout(timeout);
-
-        try {
-          delete window[callbackName];
-        } catch (err) {
-          window[callbackName] = undefined;
-        }
-
-        if (script && script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-      }
-
-      const query = [
-        'action=dashboardData',
-        'fundingSource=' + encodeURIComponent(fundingSource || 'All'),
-        'forceRefresh=' + encodeURIComponent(forceRefresh === true ? 'true' : 'false'),
-        'callback=' + encodeURIComponent(callbackName),
-        'cacheBust=' + encodeURIComponent(Date.now())
-      ].join('&');
-
-      const separator = APPS_SCRIPT_WEB_APP_URL.indexOf('?') >= 0 ? '&' : '?';
-
-      script.src = APPS_SCRIPT_WEB_APP_URL + separator + query;
-
-      script.onerror = function() {
-        cleanup();
-        failureHandler({
-          message: 'Unable to connect to Apps Script Web App. Please check the Web App URL and deployment permission.'
-        });
-      };
-
-      document.body.appendChild(script);
     }
 
     function getLatestDailyRbaTotal(expenseRows) {
@@ -1910,8 +1904,8 @@
             },
             x: {
               type: 'linear',
-              min: -0.24,
-              max: labels.length - 0.92,
+              min: -0.35,
+              max: labels.length - 0.65,
               border: {
                 display: false
               },
@@ -2142,7 +2136,7 @@
       document.getElementById('loader').innerHTML = `
         <div style="max-width:780px;background:#061733;padding:25px;border-radius:18px;box-shadow:0 15px 35px rgba(0,0,0,0.35);border:1px solid rgba(255,77,109,0.45);">
           <h2 style="margin-top:0;color:#ff4d6d;">Dashboard Loading Error</h2>
-          <p style="color:#eaf4ff;">Please check Apps Script permission, Web App URL, and Google Sheet access.</p>
+          <p style="color:#eaf4ff;">Please check Apps Script Web App URL, deployment permission, and Google Sheet access.</p>
           <pre style="white-space:pre-wrap;background:#020b1f;color:#ffffff;padding:14px;border-radius:12px;">${escapeHtml(error.message || error)}</pre>
         </div>
       `;
