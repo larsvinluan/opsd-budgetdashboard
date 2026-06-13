@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OPSD Budget Summary Dashboard</title>
@@ -25,9 +24,7 @@
       --shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html,
     body {
@@ -183,9 +180,7 @@
       line-height: 1.15;
     }
 
-    .hero-title-block {
-      min-width: 0;
-    }
+    .hero-title-block { min-width: 0; }
 
     .hero h1 {
       margin: 0;
@@ -300,9 +295,7 @@
       border-top: 1px solid rgba(52, 223, 255, 0.20);
     }
 
-    .filter-field {
-      min-width: 0;
-    }
+    .filter-field { min-width: 0; }
 
     .filter-field label {
       display: block;
@@ -587,9 +580,7 @@
         0 0 18px rgba(0, 166, 255, 0.08);
     }
 
-    .table-panel {
-      margin-top: 8px;
-    }
+    .table-panel { margin-top: 8px; }
 
     .expense-filter-bar {
       display: grid;
@@ -619,17 +610,13 @@
       min-width: 0;
     }
 
-    .expense-filter-input {
-      padding: 0 14px;
-    }
+    .expense-filter-input { padding: 0 14px; }
 
     .expense-filter-input::placeholder {
       color: rgba(255,255,255,0.50);
     }
 
-    .expense-filter-select {
-      padding: 0 12px;
-    }
+    .expense-filter-select { padding: 0 12px; }
 
     .expense-refresh-button {
       cursor: pointer;
@@ -699,10 +686,116 @@
       border-top: 1px solid rgba(0, 214, 107, 0.38);
     }
 
+    .th-rba-group,
+    .th-actual-group {
+      background: linear-gradient(135deg, #004fc7, #0d86ff) !important;
+      color: #ffffff !important;
+      font-weight: 800;
+    }
+
+    .td-rba-group,
+    .td-actual-group {
+      background: rgba(6, 25, 60, 0.92);
+      color: #f0f7ff !important;
+      font-weight: 400 !important;
+    }
+
+    tr:nth-child(even) .td-rba-group,
+    tr:nth-child(even) .td-actual-group {
+      background: rgba(4, 18, 45, 0.96);
+    }
+
+    tbody tr:hover .td-rba-group,
+    tbody tr:hover .td-actual-group {
+      background: rgba(12, 57, 113, 0.65) !important;
+      color: #f0f7ff !important;
+      font-weight: 400 !important;
+    }
+
+    tfoot .td-rba-group,
+    tfoot .td-actual-group {
+      background: rgba(0, 214, 107, 0.15) !important;
+      color: #ffffff !important;
+      font-weight: 600 !important;
+    }
+
     .allocation-ok { color: #37f08a; font-weight: 800; }
     .allocation-near { color: #ffd84d; font-weight: 800; }
     .allocation-full { color: #38d9ff; font-weight: 800; }
     .allocation-over { color: #ff6b88; font-weight: 800; }
+
+    .utilization-warning {
+      color: #ff4d6d !important;
+      font-weight: 800;
+    }
+
+    .utilization-on-track {
+      color: #37f08a !important;
+      font-weight: 800;
+    }
+
+    .utilization-high {
+      color: #38d9ff !important;
+      font-weight: 800;
+    }
+
+    .utilization-over {
+      color: #ff4d6d !important;
+      font-weight: 800;
+    }
+
+    .catchup-cell {
+      text-align: center;
+      vertical-align: middle;
+      line-height: 1.25;
+    }
+
+    .catchup-upload-button,
+    .catchup-download-button,
+    .catchup-delete-button {
+      border: none;
+      background: transparent;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      cursor: pointer;
+      padding: 2px 3px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .catchup-upload-button { color: #38d9ff; }
+    .catchup-upload-button:hover { color: #ffffff; }
+    .catchup-download-button { color: #37f08a; }
+    .catchup-delete-button { color: #ff4d6d; }
+
+    .catchup-file-row {
+      margin-bottom: 6px;
+      font-size: 11.5px;
+      color: #f0f7ff;
+      word-break: break-word;
+    }
+
+    .catchup-file-name {
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 400;
+      color: #f0f7ff;
+    }
+
+    .catchup-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .catchup-uploading {
+      color: #ffd84d;
+      font-size: 11.5px;
+      font-weight: 800;
+    }
 
     .view-all-wrap {
       border-top: 1px solid rgba(52, 223, 255, 0.22);
@@ -772,10 +865,7 @@
     }
 
     @media (max-width: 1200px) {
-      .hero-inner {
-        grid-template-columns: 1fr;
-      }
-
+      .hero-inner { grid-template-columns: 1fr; }
       .hero-cards {
         grid-template-columns: repeat(3, 1fr);
         min-width: 0;
@@ -801,27 +891,14 @@
         height: 23px;
       }
 
-      .kpi .value {
-        font-size: 22px;
-      }
-
-      .kpi .note {
-        font-size: 10px;
-      }
-
-      .chart-box {
-        height: 245px;
-      }
+      .kpi .value { font-size: 22px; }
+      .kpi .note { font-size: 10px; }
+      .chart-box { height: 245px; }
     }
 
     @media (max-width: 700px) {
-      .page {
-        padding: 6px;
-      }
-
-      .hero {
-        padding: 14px;
-      }
+      .page { padding: 6px; }
+      .hero { padding: 14px; }
 
       .hero-inner,
       .grid-main,
@@ -855,9 +932,7 @@
         min-width: 0;
       }
 
-      .kpis {
-        grid-template-columns: 1fr;
-      }
+      .kpis { grid-template-columns: 1fr; }
 
       .kpi {
         grid-template-columns: 48px minmax(0, 1fr);
@@ -884,9 +959,7 @@
         padding: 7px 5px;
       }
 
-      .footer {
-        flex-direction: column;
-      }
+      .footer { flex-direction: column; }
     }
   </style>
 </head>
@@ -1071,14 +1144,22 @@
       <table>
         <thead>
           <tr>
-            <th>Project / Program</th>
-            <th>Funding Source</th>
-            <th>Quarter</th>
-            <th>Allocation</th>
-            <th>Used Amount</th>
-            <th>Remaining Balance</th>
-            <th>Utilization %</th>
-            <th>Allocation Status</th>
+            <th rowspan="2">Project / Program</th>
+            <th rowspan="2">Funding Source</th>
+            <th rowspan="2">Quarter</th>
+            <th rowspan="2">Allocation</th>
+            <th colspan="2" class="th-rba-group">Utilization (RBA)</th>
+            <th colspan="2" class="th-actual-group">Utilization (Actual)</th>
+            <th rowspan="2">Utilization %</th>
+            <th rowspan="2">Utilization Status</th>
+            <th rowspan="2">Allocation Status</th>
+            <th rowspan="2">Catch Up Plan</th>
+          </tr>
+          <tr>
+            <th class="th-rba-group">Total RBA Approved</th>
+            <th class="th-rba-group">Balance</th>
+            <th class="th-actual-group">Total OR/DV</th>
+            <th class="th-actual-group">Balance</th>
           </tr>
         </thead>
         <tbody id="allocationTable"></tbody>
@@ -1088,9 +1169,13 @@
             <td id="allocationTotalFunding">All</td>
             <td>2nd Quarter</td>
             <td id="allocationTotalBudget">₱0.00</td>
-            <td id="allocationTotalUsed">₱0.00</td>
-            <td id="allocationTotalRemaining">₱0.00</td>
+            <td id="allocationTotalRbaApproved" class="td-rba-group">₱0.00</td>
+            <td id="allocationTotalRbaBalance" class="td-rba-group">₱0.00</td>
+            <td id="allocationTotalActualUsed" class="td-actual-group">₱0.00</td>
+            <td id="allocationTotalActualBalance" class="td-actual-group">₱0.00</td>
             <td id="allocationTotalUtilization">0%</td>
+            <td></td>
+            <td></td>
             <td></td>
           </tr>
         </tfoot>
@@ -1182,17 +1267,11 @@
   <script>
     /*
       IMPORTANT FOR GITHUB:
-      Replace the value below with your deployed Google Apps Script Web App URL.
-
+      Paste your deployed Apps Script Web App URL below.
       Example:
-      const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxxxxxx/exec';
-
-      Apps Script deployment should be:
-      Deploy > New deployment > Web app
-      Execute as: Me
-      Who has access: Anyone
+      const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxxxxxx/exec';
     */
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyjfSmwZprQaJafKjMbkTb8v5qFfskgIQ2y1I9ofGeCZ3Hw2LWjndWwsRvyKUUHVHAx/exec';
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGQZBXrVjq8Brhd_mgiX6H_MaIRx4ZBQtBJOikVYjzMN1v0ZvtW5xknA-IAp5u0OGM/exec';
 
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
@@ -1205,6 +1284,8 @@
     let allExpenseRows = [];
     let allProjects = [];
     let allMonths = [];
+    let currentAllocationRows = [];
+    let catchUpFilesMap = {};
 
     let loadingStartedAt = Date.now();
     let isDashboardLoadedOnce = false;
@@ -1269,67 +1350,39 @@
       }
     }, AUTO_REFRESH_INTERVAL_MS);
 
-    function getAppsScriptData(forceRefresh) {
-      return new Promise(function(resolve, reject) {
-        if (!WEB_APP_URL || WEB_APP_URL === 'PASTE_YOUR_DEPLOYED_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
-          reject(new Error('Please paste your deployed Google Apps Script Web App URL in WEB_APP_URL.'));
-          return;
-        }
-
-        const callbackName = 'opSDBudgetDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-        const script = document.createElement('script');
-
-        const separator = WEB_APP_URL.indexOf('?') >= 0 ? '&' : '?';
-        const url = WEB_APP_URL
-          + separator
-          + 'action=dashboardData'
-          + '&fundingSource=All'
-          + '&forceRefresh=' + encodeURIComponent(forceRefresh === true ? 'true' : 'false')
-          + '&callback=' + encodeURIComponent(callbackName)
-          + '&_=' + Date.now();
-
-        let completed = false;
-
-        const timeout = setTimeout(function() {
-          if (completed) return;
-
-          completed = true;
-          cleanup();
-          reject(new Error('Request timed out. Please check your Apps Script Web App deployment and access permission.'));
-        }, 60000);
-
-        window[callbackName] = function(data) {
-          if (completed) return;
-
-          completed = true;
-          clearTimeout(timeout);
-          cleanup();
-          resolve(data);
-        };
-
-        script.onerror = function() {
-          if (completed) return;
-
-          completed = true;
-          clearTimeout(timeout);
-          cleanup();
-          reject(new Error('Unable to load data from Apps Script. Please check the Web App URL and deployment access.'));
-        };
-
-        function cleanup() {
-          try {
-            delete window[callbackName];
-          } catch (err) {
-            window[callbackName] = undefined;
+    function apiGet(params) {
+      const query = new URLSearchParams(params).toString();
+      return fetch(WEB_APP_URL + '?' + query)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Backend request failed: ' + response.status);
           }
-
-          if (script && script.parentNode) {
-            script.parentNode.removeChild(script);
+          return response.json();
+        })
+        .then(result => {
+          if (result && result.success === false) {
+            throw new Error(result.message || 'Backend returned an error.');
           }
-        }
+          return result.data !== undefined ? result.data : result;
+        });
+    }
 
-        script.src = url;
-        document.body.appendChild(script);
+    function apiPost(payload) {
+      return fetch(WEB_APP_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Backend request failed: ' + response.status);
+        }
+        return response.json();
+      })
+      .then(result => {
+        if (result && result.success === false) {
+          throw new Error(result.message || 'Backend returned an error.');
+        }
+        return result.data !== undefined ? result.data : result;
       });
     }
 
@@ -1356,6 +1409,13 @@
     function loadDashboard(forceRefresh) {
       if (isDashboardLoading) return;
 
+      if (!WEB_APP_URL || WEB_APP_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_EXEC_URL_HERE') {
+        showError({
+          message: 'Please paste your Apps Script Web App /exec URL in WEB_APP_URL inside index.html.'
+        });
+        return;
+      }
+
       isDashboardLoading = true;
       loadingStartedAt = Date.now();
 
@@ -1372,25 +1432,29 @@
         fitDashboardToScreen();
       }
 
-      getAppsScriptData(forceRefresh === true)
-        .then(function(data) {
-          const elapsed = Date.now() - loadingStartedAt;
-          const waitTime = isDashboardLoadedOnce ? 0 : Math.max(0, MIN_LOADING_TIME - elapsed);
+      apiGet({
+        action: 'dashboard',
+        forceRefresh: forceRefresh === true ? 'true' : 'false',
+        fundingSource: 'All'
+      })
+      .then(function(data) {
+        const elapsed = Date.now() - loadingStartedAt;
+        const waitTime = isDashboardLoadedOnce ? 0 : Math.max(0, MIN_LOADING_TIME - elapsed);
 
-          setTimeout(function() {
-            isDashboardLoading = false;
-            isDashboardLoadedOnce = true;
-            setDashboardRefreshState(false);
-
-            masterDashboardData = data;
-            renderDashboardByFundingSource(getMainFundingSourceFilterValue());
-          }, waitTime);
-        })
-        .catch(function(error) {
+        setTimeout(function() {
           isDashboardLoading = false;
+          isDashboardLoadedOnce = true;
           setDashboardRefreshState(false);
-          showError(error);
-        });
+
+          masterDashboardData = data;
+          renderDashboardByFundingSource(getMainFundingSourceFilterValue());
+        }, waitTime);
+      })
+      .catch(function(error) {
+        isDashboardLoading = false;
+        setDashboardRefreshState(false);
+        showError(error);
+      });
     }
 
     function getLatestDailyRbaTotal(expenseRows) {
@@ -1405,9 +1469,7 @@
 
       return expenseRows
         .filter(row => Number(row.dateSort || 0) === latestDateSort)
-        .reduce((sum, row) => {
-          return sum + Number(row.approvedRBA || 0);
-        }, 0);
+        .reduce((sum, row) => sum + Number(row.approvedRBA || 0), 0);
     }
 
     function buildFilteredDashboardData(sourceValue) {
@@ -1420,6 +1482,8 @@
       const originalProjectSummary = masterDashboardData.projectSummary || [];
       const originalExpenseRows = masterDashboardData.expenseRows || [];
 
+      catchUpFilesMap = masterDashboardData.catchUpFiles || {};
+
       const projectSummary = sourceLabel === 'All'
         ? originalProjectSummary.slice()
         : originalProjectSummary.filter(row => row.fundingSource === sourceLabel);
@@ -1428,77 +1492,102 @@
         ? originalExpenseRows.slice()
         : originalExpenseRows.filter(row => row.fundingSource === sourceLabel);
 
-      const approvedBudget = projectSummary.reduce((sum, item) => {
-        return sum + Number(item.approvedBudget || 0);
-      }, 0);
+      const approvedBudget = projectSummary.reduce((sum, item) => sum + Number(item.approvedBudget || 0), 0);
 
       const totalExpenses = projectSummary.reduce((sum, item) => {
-        return sum + Number(item.totalExpenses || 0);
+        const actualAmount = Number(item.totalOrDv || 0);
+        const rbaAmount = Number(item.totalExpenses || 0);
+        return sum + (actualAmount > 0 ? actualAmount : rbaAmount);
       }, 0);
 
       const dailyExpenses = getLatestDailyRbaTotal(expenseRows);
 
       const remainingBalance = projectSummary.reduce((sum, item) => {
-        return sum + Number(item.remainingBudget || 0);
+        const actualBalance = Number(item.actualBalance || 0);
+        const regularBalance = Number(item.remainingBudget || 0);
+        return sum + (actualBalance !== 0 ? actualBalance : regularBalance);
       }, 0);
 
-      const utilizationRate = approvedBudget > 0 ? totalExpenses / approvedBudget : 0;
-
-      const attentionCount = projectSummary.filter(item => {
-        return Number(item.utilization || 0) >= 0.8;
-      }).length;
-
       const allocationRows = projectSummary.map(item => {
-        const utilization = Number(item.utilization || 0);
         const allocation = Number(item.approvedBudget || 0);
-        const usedAmount = Number(item.totalExpenses || 0);
-        const remainingAmount = Number(item.remainingBudget || 0);
+
+        const totalRbaApproved = Number(
+          item.totalRbaApproved !== undefined ? item.totalRbaApproved : item.totalExpenses || 0
+        );
+
+        const rbaBalance = Number(
+          item.rbaBalance !== undefined ? item.rbaBalance : allocation - totalRbaApproved
+        );
+
+        const totalOrDv = Number(
+          item.totalOrDv !== undefined ? item.totalOrDv : 0
+        );
+
+        const actualBalance = Number(
+          item.actualBalance !== undefined ? item.actualBalance : allocation - totalOrDv
+        );
+
+        const utilization = allocation > 0 ? totalOrDv / allocation : 0;
 
         let allocationStatus = 'Within Allocation';
 
-        if (usedAmount > allocation) {
+        if (totalOrDv > allocation) {
           allocationStatus = 'Over Allocation';
-        } else if (allocation > 0 && Math.abs(usedAmount - allocation) < 0.01) {
+        } else if (allocation > 0 && Math.abs(totalOrDv - allocation) < 0.01) {
           allocationStatus = 'Fully Utilized';
         } else if (utilization >= 0.8) {
           allocationStatus = 'Near Limit';
         }
 
+        const quarter = item.quarter || '2nd Quarter';
+        const catchUpKey = item.catchUpKey || getCatchUpKey({
+          project: item.project,
+          fundingSource: item.fundingSource || sourceLabel,
+          quarter: quarter
+        });
+
         return {
           project: item.project,
           fundingSource: item.fundingSource || sourceLabel,
-          quarter: item.quarter || '2nd Quarter',
+          quarter: quarter,
           allocation: allocation,
-          usedAmount: usedAmount,
-          remainingBalance: remainingAmount,
+          totalRbaApproved: totalRbaApproved,
+          rbaBalance: rbaBalance,
+          totalOrDv: totalOrDv,
+          actualBalance: actualBalance,
           utilization: utilization,
-          allocationStatus: allocationStatus
+          utilizationStatus: getUtilizationStatus(utilization),
+          allocationStatus: allocationStatus,
+          catchUpKey: catchUpKey,
+          catchUpFiles: catchUpFilesMap[catchUpKey] || []
         };
       });
+
+      const totalRbaApproved = allocationRows.reduce((sum, item) => sum + Number(item.totalRbaApproved || 0), 0);
+      const totalRbaBalance = allocationRows.reduce((sum, item) => sum + Number(item.rbaBalance || 0), 0);
+      const totalOrDv = allocationRows.reduce((sum, item) => sum + Number(item.totalOrDv || 0), 0);
+      const totalActualBalance = allocationRows.reduce((sum, item) => sum + Number(item.actualBalance || 0), 0);
+      const actualUtilizationRate = approvedBudget > 0 ? totalOrDv / approvedBudget : 0;
+      const utilizationRate = actualUtilizationRate;
+
+      const attentionCount = allocationRows.filter(item => Number(item.utilization || 0) >= 0.8).length;
 
       const projectFilterSet = {};
       const monthFilterMap = {};
 
       expenseRows.forEach(row => {
-        if (row.project) {
-          projectFilterSet[row.project] = true;
-        }
-
-        if (row.monthKey && row.monthLabel) {
-          monthFilterMap[row.monthKey] = row.monthLabel;
-        }
+        if (row.project) projectFilterSet[row.project] = true;
+        if (row.monthKey && row.monthLabel) monthFilterMap[row.monthKey] = row.monthLabel;
       });
 
       const filterProjects = Object.keys(projectFilterSet).sort();
 
       const filterMonths = Object.keys(monthFilterMap)
         .sort()
-        .map(key => {
-          return {
-            value: key,
-            label: monthFilterMap[key]
-          };
-        });
+        .map(key => ({
+          value: key,
+          label: monthFilterMap[key]
+        }));
 
       return {
         selectedFundingSource: sourceLabel,
@@ -1508,6 +1597,8 @@
         dailyExpenses: dailyExpenses,
         remainingBalance: remainingBalance,
         utilizationRate: utilizationRate,
+        actualUtilizationRate: actualUtilizationRate,
+        utilizationStatus: getUtilizationStatus(actualUtilizationRate),
         attentionCount: attentionCount,
         projectSummary: projectSummary,
         allocationRows: allocationRows,
@@ -1515,15 +1606,18 @@
         expenseRows: expenseRows,
         filterProjects: filterProjects,
         filterMonths: filterMonths,
+        totalRbaApproved: totalRbaApproved,
+        totalRbaBalance: totalRbaBalance,
+        totalOrDv: totalOrDv,
+        totalActualBalance: totalActualBalance,
+        catchUpFiles: catchUpFilesMap,
         lastUpdated: masterDashboardData.lastUpdated
       };
     }
 
     function renderDashboardByFundingSource(sourceValue) {
       const filteredData = buildFilteredDashboardData(sourceValue);
-
       if (!filteredData) return;
-
       renderDashboard(filteredData);
     }
 
@@ -1549,7 +1643,6 @@
 
     function updateCoverageText(selectedFundingSource) {
       const coverageText = document.getElementById('coverageText');
-
       if (!coverageText) return;
 
       if (selectedFundingSource === 'HEDF') {
@@ -1612,20 +1705,23 @@
       document.getElementById('dailyExpenses').textContent = formatPesoShort(data.dailyExpenses);
       document.getElementById('remainingBalance').textContent = formatPesoShort(data.remainingBalance);
       document.getElementById('attentionCount').textContent = data.attentionCount + ' Projects';
-      document.getElementById('utilizationText').textContent = formatPercent(data.utilizationRate);
+      document.getElementById('utilizationText').textContent = formatPercent(data.actualUtilizationRate || data.utilizationRate);
       document.getElementById('lastUpdated').innerHTML = formatUpdatedDateTime(data.lastUpdated);
 
       updateCoverageText(data.selectedFundingSource || getMainFundingSourceFilterValue());
 
       document.getElementById('allocationTotalFunding').textContent = data.selectedFundingSource || 'All';
       document.getElementById('allocationTotalBudget').textContent = formatPesoShort(data.approvedBudget);
-      document.getElementById('allocationTotalUsed').textContent = formatPesoShort(data.totalExpenses);
-      document.getElementById('allocationTotalRemaining').textContent = formatPesoShort(data.remainingBalance);
-      document.getElementById('allocationTotalUtilization').textContent = formatPercent(data.utilizationRate);
+      document.getElementById('allocationTotalRbaApproved').textContent = formatPesoShort(data.totalRbaApproved);
+      document.getElementById('allocationTotalRbaBalance').textContent = formatPesoShort(data.totalRbaBalance);
+      document.getElementById('allocationTotalActualUsed').textContent = formatPesoShort(data.totalOrDv);
+      document.getElementById('allocationTotalActualBalance').textContent = formatPesoShort(data.totalActualBalance);
+      document.getElementById('allocationTotalUtilization').textContent = formatPercent(data.actualUtilizationRate);
 
       allExpenseRows = data.expenseRows || [];
       allProjects = data.filterProjects || [];
       allMonths = data.filterMonths || [];
+      catchUpFilesMap = data.catchUpFiles || catchUpFilesMap || {};
 
       resetExpenseFundingFilterForMainSource(data.selectedFundingSource || 'All');
       populateExpenseFilters();
@@ -1642,7 +1738,6 @@
 
     function resetExpenseFundingFilterForMainSource(sourceValue) {
       const funding = document.getElementById('expenseFundingFilter');
-
       if (!funding) return;
 
       funding.value = 'All';
@@ -1761,13 +1856,19 @@
       const tbody = document.getElementById('allocationTable');
       tbody.innerHTML = '';
 
+      currentAllocationRows = rows || [];
+
       if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="8">No allocation data found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12">No allocation data found.</td></tr>';
         return;
       }
 
       rows.forEach(row => {
         const statusClass = getAllocationStatusClass(row.allocationStatus);
+        const utilizationStatus = row.utilizationStatus || getUtilizationStatus(row.utilization);
+        const utilizationStatusClass = getUtilizationStatusClass(utilizationStatus);
+        const catchUpKey = row.catchUpKey || getCatchUpKey(row);
+        const files = catchUpFilesMap[catchUpKey] || row.catchUpFiles || [];
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1775,13 +1876,228 @@
           <td>${escapeHtml(row.fundingSource || 'All')}</td>
           <td>${escapeHtml(row.quarter)}</td>
           <td>${formatPesoShort(row.allocation)}</td>
-          <td>${formatPesoShort(row.usedAmount)}</td>
-          <td>${formatPesoShort(row.remainingBalance)}</td>
+          <td class="td-rba-group">${formatPesoShort(row.totalRbaApproved)}</td>
+          <td class="td-rba-group">${formatPesoShort(row.rbaBalance)}</td>
+          <td class="td-actual-group">${formatPesoShort(row.totalOrDv)}</td>
+          <td class="td-actual-group">${formatPesoShort(row.actualBalance)}</td>
           <td>${formatPercent(row.utilization)}</td>
+          <td><span class="${utilizationStatusClass}">${escapeHtml(utilizationStatus)}</span></td>
           <td><span class="${statusClass}">${escapeHtml(row.allocationStatus)}</span></td>
+          <td class="catchup-cell">${renderCatchUpPlanCell(row, files)}</td>
         `;
         tbody.appendChild(tr);
       });
+    }
+
+    function renderCatchUpPlanCell(row, files) {
+      const catchUpKey = row.catchUpKey || getCatchUpKey(row);
+      const safeKey = encodeURIComponent(catchUpKey);
+
+      let html = '';
+
+      if (files && files.length) {
+        files.forEach(file => {
+          const fileName = escapeHtml(file.name || file.fileName || 'Uploaded file');
+          const fileId = escapeHtml(file.id || file.fileId || '');
+          const downloadUrl = escapeHtml(file.downloadUrl || file.url || '#');
+
+          html += `
+            <div class="catchup-file-row">
+              <span class="catchup-file-name">📎 ${fileName}</span>
+              <div class="catchup-actions">
+                <button class="catchup-download-button" type="button" onclick="downloadCatchUpFile('${downloadUrl}')">Download</button>
+                <button class="catchup-delete-button" type="button" onclick="deleteCatchUpFile('${safeKey}', '${fileId}')">Delete</button>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+          <button class="catchup-upload-button" type="button" onclick="chooseCatchUpFile('${safeKey}')">
+            Upload another file
+          </button>
+        `;
+      } else {
+        html = `
+          <button class="catchup-upload-button" type="button" onclick="chooseCatchUpFile('${safeKey}')">
+            Upload file here
+          </button>
+        `;
+      }
+
+      return html;
+    }
+
+    function chooseCatchUpFile(encodedKey) {
+      const catchUpKey = decodeURIComponent(encodedKey);
+      const row = findAllocationRowByCatchUpKey(catchUpKey);
+
+      if (!row) {
+        alert('Project row not found. Please refresh the dashboard and try again.');
+        return;
+      }
+
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.style.display = 'none';
+
+      input.onchange = function() {
+        const file = input.files && input.files[0];
+
+        if (!file) {
+          document.body.removeChild(input);
+          return;
+        }
+
+        uploadCatchUpFile(row, file);
+        document.body.removeChild(input);
+      };
+
+      document.body.appendChild(input);
+      input.click();
+    }
+
+    function uploadCatchUpFile(row, file) {
+      const catchUpKey = row.catchUpKey || getCatchUpKey(row);
+      setCatchUpUploadingState(catchUpKey, true);
+
+      const reader = new FileReader();
+
+      reader.onload = function(event) {
+        const dataUrl = event.target.result || '';
+        const base64 = String(dataUrl).split(',')[1] || '';
+
+        const payload = {
+          action: 'uploadCatchUpFile',
+          catchUpKey: catchUpKey,
+          project: row.project,
+          fundingSource: row.fundingSource,
+          quarter: row.quarter,
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          base64: base64
+        };
+
+        apiPost(payload)
+          .then(function(result) {
+            setCatchUpUploadingState(catchUpKey, false);
+
+            if (result && result.catchUpFiles) {
+              catchUpFilesMap = result.catchUpFiles;
+            } else if (result && result.files) {
+              catchUpFilesMap[catchUpKey] = result.files;
+            }
+
+            refreshCurrentAllocationRowsWithFiles();
+            renderAllocationTable(currentAllocationRows);
+          })
+          .catch(function(error) {
+            setCatchUpUploadingState(catchUpKey, false);
+            alert('Upload failed: ' + (error.message || error));
+            renderAllocationTable(currentAllocationRows);
+          });
+      };
+
+      reader.onerror = function() {
+        setCatchUpUploadingState(catchUpKey, false);
+        alert('Unable to read the selected file.');
+        renderAllocationTable(currentAllocationRows);
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function deleteCatchUpFile(encodedKey, fileId) {
+      const catchUpKey = decodeURIComponent(encodedKey);
+
+      if (!fileId) {
+        alert('File ID not found.');
+        return;
+      }
+
+      const confirmDelete = confirm('Delete this uploaded catch-up plan file?');
+      if (!confirmDelete) return;
+
+      apiPost({
+        action: 'deleteCatchUpFile',
+        catchUpKey: catchUpKey,
+        fileId: fileId
+      })
+      .then(function(result) {
+        if (result && result.catchUpFiles) {
+          catchUpFilesMap = result.catchUpFiles;
+        } else if (result && result.files) {
+          catchUpFilesMap[catchUpKey] = result.files;
+        }
+
+        refreshCurrentAllocationRowsWithFiles();
+        renderAllocationTable(currentAllocationRows);
+      })
+      .catch(function(error) {
+        alert('Delete failed: ' + (error.message || error));
+      });
+    }
+
+    function downloadCatchUpFile(downloadUrl) {
+      if (!downloadUrl || downloadUrl === '#') {
+        alert('Download link not available.');
+        return;
+      }
+
+      window.open(downloadUrl, '_blank');
+    }
+
+    function setCatchUpUploadingState(catchUpKey, isUploading) {
+      catchUpFilesMap[catchUpKey] = catchUpFilesMap[catchUpKey] || [];
+
+      currentAllocationRows = currentAllocationRows.map(row => {
+        const rowKey = row.catchUpKey || getCatchUpKey(row);
+
+        if (rowKey === catchUpKey) {
+          row.isUploadingCatchUpFile = isUploading;
+        }
+
+        return row;
+      });
+
+      const tbody = document.getElementById('allocationTable');
+      if (!tbody) return;
+
+      Array.from(tbody.querySelectorAll('.catchup-cell')).forEach(cell => {
+        if (cell.innerHTML.indexOf(encodeURIComponent(catchUpKey)) >= 0 && isUploading) {
+          cell.innerHTML = '<span class="catchup-uploading">Uploading...</span>';
+        }
+      });
+    }
+
+    function refreshCurrentAllocationRowsWithFiles() {
+      currentAllocationRows = currentAllocationRows.map(row => {
+        const key = row.catchUpKey || getCatchUpKey(row);
+        row.catchUpFiles = catchUpFilesMap[key] || [];
+        row.isUploadingCatchUpFile = false;
+        return row;
+      });
+    }
+
+    function findAllocationRowByCatchUpKey(catchUpKey) {
+      return currentAllocationRows.find(row => {
+        const key = row.catchUpKey || getCatchUpKey(row);
+        return key === catchUpKey;
+      });
+    }
+
+    function getCatchUpKey(row) {
+      return [
+        cleanKeyText(row.fundingSource || 'All'),
+        cleanKeyText(row.quarter || '2nd Quarter'),
+        cleanKeyText(row.project || '')
+      ].join('|');
+    }
+
+    function cleanKeyText(value) {
+      return String(value || '')
+        .trim()
+        .replace(/\s+/g, ' ');
     }
 
     function getApprovedBudgetChartRows(rows) {
@@ -1885,9 +2201,7 @@
             y: {
               beginAtZero: true,
               suggestedMax: Math.max(25000000, Math.max.apply(null, values) * 1.25),
-              border: {
-                display: false
-              },
+              border: { display: false },
               grid: {
                 color: 'rgba(52, 223, 255, 0.16)',
                 drawTicks: false
@@ -1906,12 +2220,8 @@
               type: 'linear',
               min: -0.35,
               max: labels.length - 0.65,
-              border: {
-                display: false
-              },
-              grid: {
-                display: false
-              },
+              border: { display: false },
+              grid: { display: false },
               ticks: {
                 stepSize: 1,
                 color: '#d5e9ff',
@@ -1951,7 +2261,11 @@
           order.push(projectKey);
         }
 
-        mergedMap[projectKey].remainingBudget += Number(row.remainingBudget || 0);
+        const remainingValue = row.actualBalance !== undefined
+          ? Number(row.actualBalance || 0)
+          : Number(row.remainingBudget || 0);
+
+        mergedMap[projectKey].remainingBudget += remainingValue;
       });
 
       return order.map(key => mergedMap[key]);
@@ -2009,9 +2323,7 @@
             },
             y: {
               grid: { display: false },
-              ticks: {
-                color: '#b9d7ff'
-              }
+              ticks: { color: '#b9d7ff' }
             }
           }
         }
@@ -2058,6 +2370,23 @@
           viewAllButton.style.display = 'none';
         }
       }
+    }
+
+    function getUtilizationStatus(value) {
+      value = Number(value || 0);
+
+      if (value > 1) return 'Over Utilized';
+      if (value >= 0.8) return 'Utilized';
+      if (value >= 0.5) return 'On Track';
+
+      return 'Warning – Immediate Attention';
+    }
+
+    function getUtilizationStatusClass(status) {
+      if (status === 'Over Utilized') return 'utilization-over';
+      if (status === 'Utilized') return 'utilization-high';
+      if (status === 'On Track') return 'utilization-on-track';
+      return 'utilization-warning';
     }
 
     function getAllocationStatusClass(status) {
@@ -2136,7 +2465,7 @@
       document.getElementById('loader').innerHTML = `
         <div style="max-width:780px;background:#061733;padding:25px;border-radius:18px;box-shadow:0 15px 35px rgba(0,0,0,0.35);border:1px solid rgba(255,77,109,0.45);">
           <h2 style="margin-top:0;color:#ff4d6d;">Dashboard Loading Error</h2>
-          <p style="color:#eaf4ff;">Please check Apps Script Web App URL, deployment permission, and Google Sheet access.</p>
+          <p style="color:#eaf4ff;">Please check Apps Script Web App URL, deployment access, and backend API setup.</p>
           <pre style="white-space:pre-wrap;background:#020b1f;color:#ffffff;padding:14px;border-radius:12px;">${escapeHtml(error.message || error)}</pre>
         </div>
       `;
