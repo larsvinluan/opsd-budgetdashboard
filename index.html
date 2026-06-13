@@ -473,16 +473,6 @@
       z-index: 2;
     }
 
-    .kpi .logo-badge::after {
-      content: "";
-      position: absolute;
-      inset: 1px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(255,255,255,0.14), transparent 55%);
-      pointer-events: none;
-      z-index: 1;
-    }
-
     .kpi .label {
       margin: 0;
       color: rgba(255,255,255,0.96);
@@ -1038,9 +1028,9 @@
               <div class="hero-card-icon">📅</div>
               <div class="hero-card-text">
                 <span>Quarter</span>
-                <strong>
-                  <span class="line">2nd Quarter AY</span>
-                  <span class="line">2026-2027</span>
+                <strong id="quarterDisplay">
+                  <span class="line">Annual / All</span>
+                  <span class="line">Quarters</span>
                 </strong>
               </div>
             </div>
@@ -1067,8 +1057,10 @@
       <section class="filters">
         <div class="filter-field">
           <label>Quarter</label>
-          <select class="filter-control">
-            <option>2nd Quarter AY 2026-2027</option>
+          <select id="mainQuarterFilter" class="filter-control">
+            <option value="All">Annual / All Quarters</option>
+            <option value="1st Quarter">1st Quarter</option>
+            <option value="2nd Quarter">2nd Quarter</option>
           </select>
         </div>
 
@@ -1083,9 +1075,10 @@
 
         <div class="filter-field">
           <label>Date Range</label>
-          <select class="filter-control">
-            <option>Apr 1, 2026 - Jun 30, 2026</option>
-            <option>Live Data</option>
+          <select id="dateRangeFilter" class="filter-control">
+            <option value="All">Annual / All Quarters</option>
+            <option value="1st Quarter">Jan 1, 2026 - Mar 31, 2026</option>
+            <option value="2nd Quarter">Apr 1, 2026 - Jun 30, 2026</option>
           </select>
         </div>
 
@@ -1106,7 +1099,7 @@
         <div>
           <div class="label">Approved Budget</div>
           <div class="value" id="approvedBudget">₱0.00</div>
-          <div class="note"><b>2nd Quarter AY 2026-2027 allocation</b> based on linked sheet</div>
+          <div class="note"><b id="approvedBudgetNote">Annual / All Quarters allocation</b> based on linked sheet</div>
         </div>
       </div>
 
@@ -1210,7 +1203,7 @@
           <tr>
             <td>Total</td>
             <td id="allocationTotalFunding">All</td>
-            <td>2nd Quarter</td>
+            <td id="allocationTotalQuarter">All Quarters</td>
             <td id="allocationTotalBudget">₱0.00</td>
             <td id="allocationTotalRbaApproved" class="td-rba-group">₱0.00</td>
             <td id="allocationTotalRbaBalance" class="td-rba-group">₱0.00</td>
@@ -1302,14 +1295,13 @@
     </section>
 
     <div class="footer">
-      <div>Google Apps Script Web Dashboard • Data source: Linked Google Sheets OPSD HEDF/GAA 2nd Quarter AY 2026-2027</div>
+      <div>Google Apps Script Web Dashboard • Data source: Linked Google Sheets OPSD HEDF/GAA Annual and Quarterly Budget Monitoring</div>
       <div>Designed for executive monitoring and decision-making</div>
     </div>
   </div>
 
   <script>
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGQZBXrVjq8Brhd_mgiX6H_MaIRx4ZBQtBJOikVYjzMN1v0ZvtW5xknA-IAp5u0OGM/exec';
-
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
     const AUTO_REFRESH_INTERVAL_MS = 120000;
@@ -1387,45 +1379,68 @@
       }
     }, AUTO_REFRESH_INTERVAL_MS);
 
-    function apiGet(params) {
-      const query = new URLSearchParams(params).toString();
-
-      return fetch(WEB_APP_URL + '?' + query)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Backend request failed: ' + response.status);
-          }
-
-          return response.json();
-        })
-        .then(result => {
-          if (result && result.success === false) {
-            throw new Error(result.message || 'Backend returned an error.');
-          }
-
-          return result.data !== undefined ? result.data : result;
-        });
+    function isWebAppUrlReady() {
+      return WEB_APP_URL &&
+        WEB_APP_URL !== 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_EXEC_URL_HERE' &&
+        WEB_APP_URL.indexOf('/exec') > -1;
     }
 
-    function apiPost(payload) {
-      return fetch(WEB_APP_URL, {
+    function buildApiUrl(params) {
+      const query = new URLSearchParams(params);
+      return WEB_APP_URL + '?' + query.toString();
+    }
+
+    async function apiGet(params) {
+      if (!isWebAppUrlReady()) {
+        throw new Error('Please replace WEB_APP_URL with your Apps Script Web App /exec URL.');
+      }
+
+      const response = await fetch(buildApiUrl(params), {
+        method: 'GET'
+      });
+
+      const text = await response.text();
+
+      let result;
+
+      try {
+        result = JSON.parse(text);
+      } catch (err) {
+        throw new Error('Invalid API response. Please check your Web App deployment and /exec URL. Response: ' + text.substring(0, 250));
+      }
+
+      if (!result.success) {
+        throw new Error(result.message || 'API request failed.');
+      }
+
+      return result.data;
+    }
+
+    async function apiPost(payload) {
+      if (!isWebAppUrlReady()) {
+        throw new Error('Please replace WEB_APP_URL with your Apps Script Web App /exec URL.');
+      }
+
+      const response = await fetch(WEB_APP_URL, {
         method: 'POST',
         body: JSON.stringify(payload)
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Backend request failed: ' + response.status);
-        }
-
-        return response.json();
-      })
-      .then(result => {
-        if (result && result.success === false) {
-          throw new Error(result.message || 'Backend returned an error.');
-        }
-
-        return result.data !== undefined ? result.data : result;
       });
+
+      const text = await response.text();
+
+      let result;
+
+      try {
+        result = JSON.parse(text);
+      } catch (err) {
+        throw new Error('Invalid API response. Please check your Web App deployment and /exec URL. Response: ' + text.substring(0, 250));
+      }
+
+      if (!result.success) {
+        throw new Error(result.message || 'API request failed.');
+      }
+
+      return result.data;
     }
 
     function fitDashboardToScreen() {
@@ -1449,21 +1464,15 @@
       document.body.style.minHeight = '100vh';
     }
 
-    function loadDashboard(forceRefresh) {
+    async function loadDashboard(forceRefresh) {
       if (isDashboardLoading) return;
-
-      if (!WEB_APP_URL || WEB_APP_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_EXEC_URL_HERE') {
-        showError({
-          message: 'Please paste your Apps Script Web App /exec URL in WEB_APP_URL inside index.html.'
-        });
-        return;
-      }
 
       isDashboardLoading = true;
       loadingStartedAt = Date.now();
 
       const loader = document.getElementById('loader');
       const dashboard = document.getElementById('dashboard');
+      const selectedQuarter = getMainQuarterFilterValue();
 
       if (!isDashboardLoadedOnce) {
         loader.style.display = 'grid';
@@ -1475,12 +1484,14 @@
         fitDashboardToScreen();
       }
 
-      apiGet({
-        action: 'dashboard',
-        forceRefresh: forceRefresh === true ? 'true' : 'false',
-        fundingSource: 'All'
-      })
-      .then(function(data) {
+      try {
+        const data = await apiGet({
+          action: 'dashboard',
+          forceRefresh: forceRefresh === true ? 'true' : 'false',
+          fundingSource: 'All',
+          quarter: selectedQuarter
+        });
+
         const elapsed = Date.now() - loadingStartedAt;
         const waitTime = isDashboardLoadedOnce ? 0 : Math.max(0, MIN_LOADING_TIME - elapsed);
 
@@ -1490,14 +1501,14 @@
           setDashboardRefreshState(false);
 
           masterDashboardData = data;
-          renderDashboardByFundingSource(getMainFundingSourceFilterValue());
+          renderDashboardByFundingSource(getMainFundingSourceFilterValue(), getMainQuarterFilterValue());
         }, waitTime);
-      })
-      .catch(function(error) {
+
+      } catch (error) {
         isDashboardLoading = false;
         setDashboardRefreshState(false);
         showError(error);
-      });
+      }
     }
 
     function getLatestDailyRbaTotal(expenseRows) {
@@ -1517,25 +1528,43 @@
         }, 0);
     }
 
-    function buildFilteredDashboardData(sourceValue) {
+    function buildFilteredDashboardData(sourceValue, quarterValue) {
       if (!masterDashboardData) return null;
 
       sourceValue = sourceValue || 'All';
+      quarterValue = quarterValue || 'All';
 
       const sourceLabel = sourceValue === 'HEDF' || sourceValue === 'GAA' ? sourceValue : 'All';
+      const quarterLabel = normalizeQuarterValue(quarterValue);
 
       const originalProjectSummary = masterDashboardData.projectSummary || [];
       const originalExpenseRows = masterDashboardData.expenseRows || [];
 
       catchUpFilesMap = masterDashboardData.catchUpFiles || {};
 
-      const projectSummary = sourceLabel === 'All'
-        ? originalProjectSummary.slice()
-        : originalProjectSummary.filter(row => row.fundingSource === sourceLabel);
+      let projectSummary = originalProjectSummary.filter(row => {
+        const rowFunding = row.fundingSource || 'All';
+        const rowQuarter = normalizeQuarterValue(row.quarter || masterDashboardData.selectedQuarter || '2nd Quarter');
 
-      const expenseRows = sourceLabel === 'All'
-        ? originalExpenseRows.slice()
-        : originalExpenseRows.filter(row => row.fundingSource === sourceLabel);
+        const matchSource = sourceLabel === 'All' || rowFunding === sourceLabel;
+        const matchQuarter = quarterLabel === 'All' || rowQuarter === quarterLabel;
+
+        return matchSource && matchQuarter;
+      });
+
+      const expenseRows = originalExpenseRows.filter(row => {
+        const rowFunding = row.fundingSource || 'All';
+        const rowQuarter = normalizeQuarterValue(row.quarter || masterDashboardData.selectedQuarter || '2nd Quarter');
+
+        const matchSource = sourceLabel === 'All' || rowFunding === sourceLabel;
+        const matchQuarter = quarterLabel === 'All' || rowQuarter === quarterLabel;
+
+        return matchSource && matchQuarter;
+      });
+
+      if (quarterLabel === 'All') {
+        projectSummary = mergeProjectSummaryForAnnual(projectSummary);
+      }
 
       const approvedBudget = projectSummary.reduce((sum, item) => {
         return sum + Number(item.approvedBudget || 0);
@@ -1586,7 +1615,7 @@
           allocationStatus = 'Near Limit';
         }
 
-        const quarter = item.quarter || '2nd Quarter';
+        const quarter = item.quarter || quarterLabel || 'All';
         const catchUpKey = item.catchUpKey || getCatchUpKey({
           project: item.project,
           fundingSource: item.fundingSource || sourceLabel,
@@ -1606,7 +1635,7 @@
           utilizationStatus: getUtilizationStatus(utilization),
           allocationStatus: allocationStatus,
           catchUpKey: catchUpKey,
-          catchUpFiles: catchUpFilesMap[catchUpKey] || []
+          catchUpFiles: item.catchUpFiles || catchUpFilesMap[catchUpKey] || []
         };
       });
 
@@ -1627,8 +1656,6 @@
       }, 0);
 
       const actualUtilizationRate = approvedBudget > 0 ? totalOrDv / approvedBudget : 0;
-
-      const utilizationRate = actualUtilizationRate;
 
       const attentionCount = allocationRows.filter(item => {
         return Number(item.utilization || 0) < 0.5;
@@ -1660,12 +1687,13 @@
 
       return {
         selectedFundingSource: sourceLabel,
+        selectedQuarter: quarterLabel,
         approvedBudget: approvedBudget,
         totalExpenses: totalExpenses,
         totalObligated: totalExpenses,
         dailyExpenses: dailyExpenses,
         remainingBalance: remainingBalance,
-        utilizationRate: utilizationRate,
+        utilizationRate: actualUtilizationRate,
         actualUtilizationRate: actualUtilizationRate,
         utilizationStatus: getUtilizationStatus(actualUtilizationRate),
         attentionCount: attentionCount,
@@ -1684,8 +1712,93 @@
       };
     }
 
-    function renderDashboardByFundingSource(sourceValue) {
-      const filteredData = buildFilteredDashboardData(sourceValue);
+    function mergeProjectSummaryForAnnual(rows) {
+      const map = {};
+      const order = [];
+
+      rows.forEach(row => {
+        const project = row.project || '';
+        const fundingSource = row.fundingSource || 'All';
+        const key = fundingSource + '|' + project;
+
+        if (!map[key]) {
+          map[key] = {
+            project: project,
+            fundingSource: fundingSource,
+            quarter: '',
+            quarterSet: {},
+            approvedBudget: 0,
+            totalRbaApproved: 0,
+            rbaBalance: 0,
+            totalOrDv: 0,
+            actualBalance: 0,
+            totalExpenses: 0,
+            dailyExpense: 0,
+            remainingBudget: 0,
+            catchUpFiles: []
+          };
+
+          order.push(key);
+        }
+
+        const quarter = normalizeQuarterValue(row.quarter || '');
+        if (quarter !== 'All') {
+          map[key].quarterSet[quarter] = true;
+        }
+
+        map[key].approvedBudget += Number(row.approvedBudget || 0);
+        map[key].totalRbaApproved += Number(row.totalRbaApproved || row.totalExpenses || 0);
+        map[key].rbaBalance += Number(row.rbaBalance || 0);
+        map[key].totalOrDv += Number(row.totalOrDv || 0);
+        map[key].actualBalance += Number(row.actualBalance || 0);
+        map[key].totalExpenses += Number(row.totalOrDv || row.totalExpenses || 0);
+        map[key].dailyExpense += Number(row.dailyExpense || 0);
+        map[key].remainingBudget += Number(row.actualBalance || row.remainingBudget || 0);
+
+        const rowKey = row.catchUpKey || getCatchUpKey({
+          project: row.project,
+          fundingSource: row.fundingSource,
+          quarter: row.quarter
+        });
+
+        const rowFiles = row.catchUpFiles || catchUpFilesMap[rowKey] || [];
+        map[key].catchUpFiles = map[key].catchUpFiles.concat(rowFiles);
+      });
+
+      return order.map(key => {
+        const item = map[key];
+        const quarters = Object.keys(item.quarterSet).sort((a, b) => getQuarterOrder(a) - getQuarterOrder(b));
+
+        item.quarter = formatMergedQuarterLabel(quarters);
+        item.catchUpKey = getCatchUpKey({
+          project: item.project,
+          fundingSource: item.fundingSource,
+          quarter: item.quarter
+        });
+
+        const annualFiles = catchUpFilesMap[item.catchUpKey] || [];
+        item.catchUpFiles = item.catchUpFiles.concat(annualFiles);
+
+        return item;
+      });
+    }
+
+    function formatMergedQuarterLabel(quarters) {
+      if (!quarters || !quarters.length) return 'All Quarters';
+
+      const labels = quarters.map(q => {
+        if (q === '1st Quarter') return '1st';
+        if (q === '2nd Quarter') return '2nd';
+        if (q === '3rd Quarter') return '3rd';
+        if (q === '4th Quarter') return '4th';
+        return q.replace(' Quarter', '');
+      });
+
+      return labels.join('/') + ' Quarter';
+    }
+
+    function renderDashboardByFundingSource(sourceValue, quarterValue) {
+      const filteredData = buildFilteredDashboardData(sourceValue, quarterValue);
 
       if (!filteredData) return;
 
@@ -1712,6 +1825,55 @@
       return select ? select.value : 'All';
     }
 
+    function getMainQuarterFilterValue() {
+      const select = document.getElementById('mainQuarterFilter');
+      return select ? select.value : 'All';
+    }
+
+    function normalizeQuarterValue(value) {
+      const text = String(value || 'All').trim();
+
+      if (text === '1st Quarter') return '1st Quarter';
+      if (text === '2nd Quarter') return '2nd Quarter';
+      if (text === '3rd Quarter') return '3rd Quarter';
+      if (text === '4th Quarter') return '4th Quarter';
+
+      return 'All';
+    }
+
+    function getQuarterOrder(quarter) {
+      quarter = normalizeQuarterValue(quarter);
+
+      if (quarter === '1st Quarter') return 1;
+      if (quarter === '2nd Quarter') return 2;
+      if (quarter === '3rd Quarter') return 3;
+      if (quarter === '4th Quarter') return 4;
+
+      return 99;
+    }
+
+    function getQuarterDisplayText(quarterValue) {
+      quarterValue = normalizeQuarterValue(quarterValue);
+
+      if (quarterValue === '1st Quarter') {
+        return '<span class="line">1st Quarter</span><span class="line">AY 2026-2027</span>';
+      }
+
+      if (quarterValue === '2nd Quarter') {
+        return '<span class="line">2nd Quarter</span><span class="line">AY 2026-2027</span>';
+      }
+
+      if (quarterValue === '3rd Quarter') {
+        return '<span class="line">3rd Quarter</span><span class="line">AY 2026-2027</span>';
+      }
+
+      if (quarterValue === '4th Quarter') {
+        return '<span class="line">4th Quarter</span><span class="line">AY 2026-2027</span>';
+      }
+
+      return '<span class="line">Annual / All</span><span class="line">Quarters</span>';
+    }
+
     function updateCoverageText(selectedFundingSource) {
       const coverageText = document.getElementById('coverageText');
 
@@ -1726,21 +1888,63 @@
       }
     }
 
+    function updateQuarterDisplay(selectedQuarter) {
+      const quarterDisplay = document.getElementById('quarterDisplay');
+      const approvedBudgetNote = document.getElementById('approvedBudgetNote');
+      const dateRangeFilter = document.getElementById('dateRangeFilter');
+
+      selectedQuarter = normalizeQuarterValue(selectedQuarter);
+
+      if (quarterDisplay) {
+        quarterDisplay.innerHTML = getQuarterDisplayText(selectedQuarter);
+      }
+
+      if (approvedBudgetNote) {
+        approvedBudgetNote.textContent = selectedQuarter === 'All'
+          ? 'Annual / All Quarters allocation'
+          : selectedQuarter + ' allocation';
+      }
+
+      if (dateRangeFilter && dateRangeFilter.value !== selectedQuarter) {
+        dateRangeFilter.value = selectedQuarter;
+      }
+    }
+
     function bindMainFilters() {
+      const mainQuarterFilter = document.getElementById('mainQuarterFilter');
       const mainFundingSourceFilter = document.getElementById('mainFundingSourceFilter');
+      const dateRangeFilter = document.getElementById('dateRangeFilter');
       const mainFilterButton = document.querySelector('.filter-button');
+
+      if (mainQuarterFilter) {
+        mainQuarterFilter.onchange = function() {
+          isViewingAllData = false;
+          updateQuarterDisplay(getMainQuarterFilterValue());
+          loadDashboard(false);
+        };
+      }
+
+      if (dateRangeFilter) {
+        dateRangeFilter.onchange = function() {
+          const quarter = dateRangeFilter.value;
+          if (mainQuarterFilter) mainQuarterFilter.value = quarter;
+          isViewingAllData = false;
+          updateQuarterDisplay(quarter);
+          loadDashboard(false);
+        };
+      }
 
       if (mainFundingSourceFilter) {
         mainFundingSourceFilter.onchange = function() {
           isViewingAllData = false;
-          renderDashboardByFundingSource(getMainFundingSourceFilterValue());
+          renderDashboardByFundingSource(getMainFundingSourceFilterValue(), getMainQuarterFilterValue());
         };
       }
 
       if (mainFilterButton) {
         mainFilterButton.onclick = function() {
           isViewingAllData = false;
-          renderDashboardByFundingSource(getMainFundingSourceFilterValue());
+          loadDashboard(true);
         };
       }
     }
@@ -1781,8 +1985,10 @@
       document.getElementById('lastUpdated').innerHTML = formatUpdatedDateTime(data.lastUpdated);
 
       updateCoverageText(data.selectedFundingSource || getMainFundingSourceFilterValue());
+      updateQuarterDisplay(data.selectedQuarter || getMainQuarterFilterValue());
 
       document.getElementById('allocationTotalFunding').textContent = data.selectedFundingSource || 'All';
+      document.getElementById('allocationTotalQuarter').textContent = data.selectedQuarter === 'All' ? 'All Quarters' : data.selectedQuarter;
       document.getElementById('allocationTotalBudget').textContent = formatPesoShort(data.approvedBudget);
       document.getElementById('allocationTotalRbaApproved').textContent = formatPesoShort(data.totalRbaApproved);
       document.getElementById('allocationTotalRbaBalance').textContent = formatPesoShort(data.totalRbaBalance);
@@ -1908,7 +2114,8 @@
           row.date,
           row.project,
           row.activity,
-          row.fundingSource
+          row.fundingSource,
+          row.quarter
         ].join(' ').toLowerCase();
 
         const monthKey = row.monthKey || '';
@@ -1941,9 +2148,10 @@
         const utilizationStatus = row.utilizationStatus || getUtilizationStatus(row.utilization);
         const utilizationStatusClass = getUtilizationStatusClass(utilizationStatus);
         const catchUpKey = row.catchUpKey || getCatchUpKey(row);
-        const files = catchUpFilesMap[catchUpKey] || row.catchUpFiles || [];
+        const files = row.catchUpFiles || catchUpFilesMap[catchUpKey] || [];
 
         const tr = document.createElement('tr');
+
         tr.innerHTML = `
           <td>${escapeHtml(row.project)}</td>
           <td>${escapeHtml(row.fundingSource || 'All')}</td>
@@ -2037,7 +2245,7 @@
 
       const reader = new FileReader();
 
-      reader.onload = function(event) {
+      reader.onload = async function(event) {
         const dataUrl = event.target.result || '';
         const base64 = String(dataUrl).split(',')[1] || '';
 
@@ -2052,24 +2260,25 @@
           base64: base64
         };
 
-        apiPost(payload)
-          .then(function(result) {
-            setCatchUpUploadingState(catchUpKey, false);
+        try {
+          const result = await apiPost(payload);
 
-            if (result && result.catchUpFiles) {
-              catchUpFilesMap = result.catchUpFiles;
-            } else if (result && result.files) {
-              catchUpFilesMap[catchUpKey] = result.files;
-            }
+          setCatchUpUploadingState(catchUpKey, false);
 
-            refreshCurrentAllocationRowsWithFiles();
-            renderAllocationTable(currentAllocationRows);
-          })
-          .catch(function(error) {
-            setCatchUpUploadingState(catchUpKey, false);
-            alert('Upload failed: ' + (error.message || error));
-            renderAllocationTable(currentAllocationRows);
-          });
+          if (result && result.catchUpFiles) {
+            catchUpFilesMap = result.catchUpFiles;
+          } else if (result && result.files) {
+            catchUpFilesMap[catchUpKey] = result.files;
+          }
+
+          refreshCurrentAllocationRowsWithFiles();
+          renderAllocationTable(currentAllocationRows);
+
+        } catch (error) {
+          setCatchUpUploadingState(catchUpKey, false);
+          alert('Upload failed: ' + (error.message || error));
+          renderAllocationTable(currentAllocationRows);
+        }
       };
 
       reader.onerror = function() {
@@ -2081,7 +2290,7 @@
       reader.readAsDataURL(file);
     }
 
-    function deleteCatchUpFile(encodedKey, fileId) {
+    async function deleteCatchUpFile(encodedKey, fileId) {
       const catchUpKey = decodeURIComponent(encodedKey);
 
       if (!fileId) {
@@ -2093,12 +2302,13 @@
 
       if (!confirmDelete) return;
 
-      apiPost({
-        action: 'deleteCatchUpFile',
-        catchUpKey: catchUpKey,
-        fileId: fileId
-      })
-      .then(function(result) {
+      try {
+        const result = await apiPost({
+          action: 'deleteCatchUpFile',
+          catchUpKey: catchUpKey,
+          fileId: fileId
+        });
+
         if (result && result.catchUpFiles) {
           catchUpFilesMap = result.catchUpFiles;
         } else if (result && result.files) {
@@ -2107,10 +2317,10 @@
 
         refreshCurrentAllocationRowsWithFiles();
         renderAllocationTable(currentAllocationRows);
-      })
-      .catch(function(error) {
+
+      } catch (error) {
         alert('Delete failed: ' + (error.message || error));
-      });
+      }
     }
 
     function downloadCatchUpFile(downloadUrl) {
@@ -2149,7 +2359,7 @@
     function refreshCurrentAllocationRowsWithFiles() {
       currentAllocationRows = currentAllocationRows.map(row => {
         const key = row.catchUpKey || getCatchUpKey(row);
-        row.catchUpFiles = catchUpFilesMap[key] || [];
+        row.catchUpFiles = catchUpFilesMap[key] || row.catchUpFiles || [];
         row.isUploadingCatchUpFile = false;
         return row;
       });
@@ -2165,7 +2375,7 @@
     function getCatchUpKey(row) {
       return [
         cleanKeyText(row.fundingSource || 'All'),
-        cleanKeyText(row.quarter || '2nd Quarter'),
+        cleanKeyText(row.quarter || 'All'),
         cleanKeyText(row.project || '')
       ].join('|');
     }
@@ -2276,7 +2486,7 @@
           scales: {
             y: {
               beginAtZero: true,
-              suggestedMax: Math.max(25000000, Math.max.apply(null, values) * 1.25),
+              suggestedMax: Math.max(25000000, (values.length ? Math.max.apply(null, values) : 0) * 1.25),
               border: {
                 display: false
               },
@@ -2564,7 +2774,7 @@
       document.getElementById('loader').innerHTML = `
         <div style="max-width:780px;background:#061733;padding:25px;border-radius:18px;box-shadow:0 15px 35px rgba(0,0,0,0.35);border:1px solid rgba(255,77,109,0.45);">
           <h2 style="margin-top:0;color:#ff4d6d;">Dashboard Loading Error</h2>
-          <p style="color:#eaf4ff;">Please check Apps Script Web App URL, deployment access, and backend API setup.</p>
+          <p style="color:#eaf4ff;">Please check your Apps Script Web App /exec URL, deployment access, and code.gs API setup.</p>
           <pre style="white-space:pre-wrap;background:#020b1f;color:#ffffff;padding:14px;border-radius:12px;">${escapeHtml(error.message || error)}</pre>
         </div>
       `;
