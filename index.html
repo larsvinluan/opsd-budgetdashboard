@@ -24,7 +24,9 @@
       --shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     html,
     body {
@@ -180,7 +182,9 @@
       line-height: 1.15;
     }
 
-    .hero-title-block { min-width: 0; }
+    .hero-title-block {
+      min-width: 0;
+    }
 
     .hero h1 {
       margin: 0;
@@ -295,7 +299,9 @@
       border-top: 1px solid rgba(52, 223, 255, 0.20);
     }
 
-    .filter-field { min-width: 0; }
+    .filter-field {
+      min-width: 0;
+    }
 
     .filter-field label {
       display: block;
@@ -580,7 +586,9 @@
         0 0 18px rgba(0, 166, 255, 0.08);
     }
 
-    .table-panel { margin-top: 8px; }
+    .table-panel {
+      margin-top: 8px;
+    }
 
     .expense-filter-bar {
       display: grid;
@@ -610,13 +618,17 @@
       min-width: 0;
     }
 
-    .expense-filter-input { padding: 0 14px; }
+    .expense-filter-input {
+      padding: 0 14px;
+    }
 
     .expense-filter-input::placeholder {
       color: rgba(255,255,255,0.50);
     }
 
-    .expense-filter-select { padding: 0 12px; }
+    .expense-filter-select {
+      padding: 0 12px;
+    }
 
     .expense-refresh-button {
       cursor: pointer;
@@ -764,10 +776,21 @@
       text-underline-offset: 3px;
     }
 
-    .catchup-upload-button { color: #38d9ff; }
-    .catchup-upload-button:hover { color: #ffffff; }
-    .catchup-download-button { color: #37f08a; }
-    .catchup-delete-button { color: #ff4d6d; }
+    .catchup-upload-button {
+      color: #38d9ff;
+    }
+
+    .catchup-upload-button:hover {
+      color: #ffffff;
+    }
+
+    .catchup-download-button {
+      color: #37f08a;
+    }
+
+    .catchup-delete-button {
+      color: #ff4d6d;
+    }
 
     .catchup-file-row {
       margin-bottom: 6px;
@@ -865,7 +888,10 @@
     }
 
     @media (max-width: 1200px) {
-      .hero-inner { grid-template-columns: 1fr; }
+      .hero-inner {
+        grid-template-columns: 1fr;
+      }
+
       .hero-cards {
         grid-template-columns: repeat(3, 1fr);
         min-width: 0;
@@ -891,14 +917,27 @@
         height: 23px;
       }
 
-      .kpi .value { font-size: 22px; }
-      .kpi .note { font-size: 10px; }
-      .chart-box { height: 245px; }
+      .kpi .value {
+        font-size: 22px;
+      }
+
+      .kpi .note {
+        font-size: 10px;
+      }
+
+      .chart-box {
+        height: 245px;
+      }
     }
 
     @media (max-width: 700px) {
-      .page { padding: 6px; }
-      .hero { padding: 14px; }
+      .page {
+        padding: 6px;
+      }
+
+      .hero {
+        padding: 14px;
+      }
 
       .hero-inner,
       .grid-main,
@@ -932,7 +971,9 @@
         min-width: 0;
       }
 
-      .kpis { grid-template-columns: 1fr; }
+      .kpis {
+        grid-template-columns: 1fr;
+      }
 
       .kpi {
         grid-template-columns: 48px minmax(0, 1fr);
@@ -959,7 +1000,9 @@
         padding: 7px 5px;
       }
 
-      .footer { flex-direction: column; }
+      .footer {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -1129,7 +1172,7 @@
         <div>
           <div class="label">For Attention</div>
           <div class="value" id="attentionCount">0</div>
-          <div class="note">Above 80% utilization threshold</div>
+          <div class="note">Below 50% Utilization</div>
         </div>
       </div>
     </section>
@@ -1265,12 +1308,6 @@
   </div>
 
   <script>
-    /*
-      IMPORTANT FOR GITHUB:
-      Paste your deployed Apps Script Web App URL below.
-      Example:
-      const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxxxxxx/exec';
-    */
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGQZBXrVjq8Brhd_mgiX6H_MaIRx4ZBQtBJOikVYjzMN1v0ZvtW5xknA-IAp5u0OGM/exec';
 
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
@@ -1352,17 +1389,20 @@
 
     function apiGet(params) {
       const query = new URLSearchParams(params).toString();
+
       return fetch(WEB_APP_URL + '?' + query)
         .then(response => {
           if (!response.ok) {
             throw new Error('Backend request failed: ' + response.status);
           }
+
           return response.json();
         })
         .then(result => {
           if (result && result.success === false) {
             throw new Error(result.message || 'Backend returned an error.');
           }
+
           return result.data !== undefined ? result.data : result;
         });
     }
@@ -1376,18 +1416,21 @@
         if (!response.ok) {
           throw new Error('Backend request failed: ' + response.status);
         }
+
         return response.json();
       })
       .then(result => {
         if (result && result.success === false) {
           throw new Error(result.message || 'Backend returned an error.');
         }
+
         return result.data !== undefined ? result.data : result;
       });
     }
 
     function fitDashboardToScreen() {
       const dashboard = document.getElementById('dashboard');
+
       if (!dashboard) return;
 
       dashboard.style.width = '100%';
@@ -1469,7 +1512,9 @@
 
       return expenseRows
         .filter(row => Number(row.dateSort || 0) === latestDateSort)
-        .reduce((sum, row) => sum + Number(row.approvedRBA || 0), 0);
+        .reduce((sum, row) => {
+          return sum + Number(row.approvedRBA || 0);
+        }, 0);
     }
 
     function buildFilteredDashboardData(sourceValue) {
@@ -1492,7 +1537,9 @@
         ? originalExpenseRows.slice()
         : originalExpenseRows.filter(row => row.fundingSource === sourceLabel);
 
-      const approvedBudget = projectSummary.reduce((sum, item) => sum + Number(item.approvedBudget || 0), 0);
+      const approvedBudget = projectSummary.reduce((sum, item) => {
+        return sum + Number(item.approvedBudget || 0);
+      }, 0);
 
       const totalExpenses = projectSummary.reduce((sum, item) => {
         const actualAmount = Number(item.totalOrDv || 0);
@@ -1563,31 +1610,53 @@
         };
       });
 
-      const totalRbaApproved = allocationRows.reduce((sum, item) => sum + Number(item.totalRbaApproved || 0), 0);
-      const totalRbaBalance = allocationRows.reduce((sum, item) => sum + Number(item.rbaBalance || 0), 0);
-      const totalOrDv = allocationRows.reduce((sum, item) => sum + Number(item.totalOrDv || 0), 0);
-      const totalActualBalance = allocationRows.reduce((sum, item) => sum + Number(item.actualBalance || 0), 0);
+      const totalRbaApproved = allocationRows.reduce((sum, item) => {
+        return sum + Number(item.totalRbaApproved || 0);
+      }, 0);
+
+      const totalRbaBalance = allocationRows.reduce((sum, item) => {
+        return sum + Number(item.rbaBalance || 0);
+      }, 0);
+
+      const totalOrDv = allocationRows.reduce((sum, item) => {
+        return sum + Number(item.totalOrDv || 0);
+      }, 0);
+
+      const totalActualBalance = allocationRows.reduce((sum, item) => {
+        return sum + Number(item.actualBalance || 0);
+      }, 0);
+
       const actualUtilizationRate = approvedBudget > 0 ? totalOrDv / approvedBudget : 0;
+
       const utilizationRate = actualUtilizationRate;
 
-      const attentionCount = allocationRows.filter(item => Number(item.utilization || 0) >= 0.8).length;
+      const attentionCount = allocationRows.filter(item => {
+        return Number(item.utilization || 0) < 0.5;
+      }).length;
 
       const projectFilterSet = {};
       const monthFilterMap = {};
 
       expenseRows.forEach(row => {
-        if (row.project) projectFilterSet[row.project] = true;
-        if (row.monthKey && row.monthLabel) monthFilterMap[row.monthKey] = row.monthLabel;
+        if (row.project) {
+          projectFilterSet[row.project] = true;
+        }
+
+        if (row.monthKey && row.monthLabel) {
+          monthFilterMap[row.monthKey] = row.monthLabel;
+        }
       });
 
       const filterProjects = Object.keys(projectFilterSet).sort();
 
       const filterMonths = Object.keys(monthFilterMap)
         .sort()
-        .map(key => ({
-          value: key,
-          label: monthFilterMap[key]
-        }));
+        .map(key => {
+          return {
+            value: key,
+            label: monthFilterMap[key]
+          };
+        });
 
       return {
         selectedFundingSource: sourceLabel,
@@ -1617,7 +1686,9 @@
 
     function renderDashboardByFundingSource(sourceValue) {
       const filteredData = buildFilteredDashboardData(sourceValue);
+
       if (!filteredData) return;
+
       renderDashboard(filteredData);
     }
 
@@ -1643,6 +1714,7 @@
 
     function updateCoverageText(selectedFundingSource) {
       const coverageText = document.getElementById('coverageText');
+
       if (!coverageText) return;
 
       if (selectedFundingSource === 'HEDF') {
@@ -1738,6 +1810,7 @@
 
     function resetExpenseFundingFilterForMainSource(sourceValue) {
       const funding = document.getElementById('expenseFundingFilter');
+
       if (!funding) return;
 
       funding.value = 'All';
@@ -1885,6 +1958,7 @@
           <td><span class="${statusClass}">${escapeHtml(row.allocationStatus)}</span></td>
           <td class="catchup-cell">${renderCatchUpPlanCell(row, files)}</td>
         `;
+
         tbody.appendChild(tr);
       });
     }
@@ -2016,6 +2090,7 @@
       }
 
       const confirmDelete = confirm('Delete this uploaded catch-up plan file?');
+
       if (!confirmDelete) return;
 
       apiPost({
@@ -2061,6 +2136,7 @@
       });
 
       const tbody = document.getElementById('allocationTable');
+
       if (!tbody) return;
 
       Array.from(tbody.querySelectorAll('.catchup-cell')).forEach(cell => {
@@ -2201,7 +2277,9 @@
             y: {
               beginAtZero: true,
               suggestedMax: Math.max(25000000, Math.max.apply(null, values) * 1.25),
-              border: { display: false },
+              border: {
+                display: false
+              },
               grid: {
                 color: 'rgba(52, 223, 255, 0.16)',
                 drawTicks: false
@@ -2220,8 +2298,12 @@
               type: 'linear',
               min: -0.35,
               max: labels.length - 0.65,
-              border: { display: false },
-              grid: { display: false },
+              border: {
+                display: false
+              },
+              grid: {
+                display: false
+              },
               ticks: {
                 stepSize: 1,
                 color: '#d5e9ff',
@@ -2236,6 +2318,7 @@
                   if (Number.isInteger(value) && labels[value]) {
                     return labels[value];
                   }
+
                   return '';
                 }
               }
@@ -2315,15 +2398,21 @@
           scales: {
             x: {
               beginAtZero: true,
-              grid: { color: 'rgba(52, 223, 255, 0.12)' },
+              grid: {
+                color: 'rgba(52, 223, 255, 0.12)'
+              },
               ticks: {
                 color: '#b9d7ff',
                 callback: value => formatPesoShort(value)
               }
             },
             y: {
-              grid: { display: false },
-              ticks: { color: '#b9d7ff' }
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: '#b9d7ff'
+              }
             }
           }
         }
@@ -2350,6 +2439,7 @@
 
       visibleRows.forEach(row => {
         const tr = document.createElement('tr');
+
         tr.innerHTML = `
           <td>${escapeHtml(row.date)}</td>
           <td>${escapeHtml(row.project)}</td>
@@ -2359,6 +2449,7 @@
           <td>${formatPeso(row.approvedRBA)}</td>
           <td>${formatPeso(row.balance)}</td>
         `;
+
         tbody.appendChild(tr);
       });
 
@@ -2375,9 +2466,17 @@
     function getUtilizationStatus(value) {
       value = Number(value || 0);
 
-      if (value > 1) return 'Over Utilized';
-      if (value >= 0.8) return 'Utilized';
-      if (value >= 0.5) return 'On Track';
+      if (value > 1) {
+        return 'Over Utilized';
+      }
+
+      if (value >= 0.8) {
+        return 'Utilized';
+      }
+
+      if (value >= 0.5) {
+        return 'On Track';
+      }
 
       return 'Warning – Immediate Attention';
     }
