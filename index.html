@@ -1397,6 +1397,13 @@
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
     const AUTO_REFRESH_INTERVAL_MS = 120000;
+    const BROWSER_CACHE_DB_NAME = 'OPSD_Budget_Dashboard_Cache';
+    const BROWSER_CACHE_STORE_NAME = 'quarterData';
+    const BROWSER_CACHE_VERSION = 1;
+    const BROWSER_CACHE_KEY_PREFIX = 'v4-20260725|';
+    const BROWSER_CACHE_MAX_STALE_MS = 24 * 60 * 60 * 1000;
+    const BACKGROUND_REFRESH_AGE_MS = 2 * 60 * 1000;
+    const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', 'All'];
 
     let dailyExpenseChart;
     let remainingBudgetChart;
@@ -1412,6 +1419,12 @@
     let isDashboardLoadedOnce = false;
     let isDashboardLoading = false;
     let isViewingAllData = false;
+    let activeDashboardRequestToken = 0;
+    let quarterPrefetchStarted = false;
+    let browserCacheDbPromise = null;
+
+    const dashboardMemoryCache = Object.create(null);
+    const dashboardFetchPromises = Object.create(null);
 
     const chartColors = [
       '#38d9ff',
@@ -1492,9 +1505,7 @@
     });
 
     setInterval(function() {
-      if (!isDashboardLoading) {
-        loadDashboard(false);
-      }
+      refreshActiveQuarterInBackground();
     }, AUTO_REFRESH_INTERVAL_MS);
 
     function isWebAppUrlReady() {
@@ -1561,6 +1572,214 @@
       return result.data;
     }
 
+
+    function getBrowserCacheKey(quarter) {
+      return BROWSER_CACHE_KEY_PREFIX + normalizeQuarterValue(quarter);
+    }
+
+    function openBrowserCacheDb() {
+      if (!('indexedDB' in window)) {
+        return Promise.resolve(null);
+      }
+
+      if (browserCacheDbPromise) {
+        return browserCacheDbPromise;
+      }
+
+      browserCacheDbPromise = new Promise(resolve => {
+        const request = indexedDB.open(BROWSER_CACHE_DB_NAME, BROWSER_CACHE_VERSION);
+
+        request.onupgradeneeded = function(event) {
+          const db = event.target.result;
+
+          if (!db.objectStoreNames.contains(BROWSER_CACHE_STORE_NAME)) {
+            db.createObjectStore(BROWSER_CACHE_STORE_NAME, { keyPath: 'key' });
+          }
+        };
+
+        request.onsuccess = function(event) {
+          resolve(event.target.result);
+        };
+
+        request.onerror = function() {
+          resolve(null);
+        };
+      });
+
+      return browserCacheDbPromise;
+    }
+
+    async function readBrowserCacheEntry(quarter) {
+      const normalizedQuarter = normalizeQuarterValue(quarter);
+      const memoryEntry = dashboardMemoryCache[normalizedQuarter];
+
+      if (memoryEntry && memoryEntry.data) {
+        return memoryEntry;
+      }
+
+      const db = await openBrowserCacheDb();
+      if (!db) return null;
+
+      return new Promise(resolve => {
+        try {
+          const transaction = db.transaction(BROWSER_CACHE_STORE_NAME, 'readonly');
+          const store = transaction.objectStore(BROWSER_CACHE_STORE_NAME);
+          const request = store.get(getBrowserCacheKey(normalizedQuarter));
+
+          request.onsuccess = function() {
+            const entry = request.result || null;
+
+            if (entry && entry.data) {
+              dashboardMemoryCache[normalizedQuarter] = entry;
+            }
+
+            resolve(entry);
+          };
+
+          request.onerror = function() {
+            resolve(null);
+          };
+        } catch (error) {
+          resolve(null);
+        }
+      });
+    }
+
+    async function writeBrowserCacheEntry(quarter, data) {
+      if (!data) return;
+
+      const normalizedQuarter = normalizeQuarterValue(quarter);
+      const entry = {
+        key: getBrowserCacheKey(normalizedQuarter),
+        quarter: normalizedQuarter,
+        savedAt: Date.now(),
+        data: data
+      };
+
+      dashboardMemoryCache[normalizedQuarter] = entry;
+
+      const db = await openBrowserCacheDb();
+      if (!db) return;
+
+      return new Promise(resolve => {
+        try {
+          const transaction = db.transaction(BROWSER_CACHE_STORE_NAME, 'readwrite');
+          transaction.objectStore(BROWSER_CACHE_STORE_NAME).put(entry);
+          transaction.oncomplete = function() { resolve(); };
+          transaction.onerror = function() { resolve(); };
+          transaction.onabort = function() { resolve(); };
+        } catch (error) {
+          resolve();
+        }
+      });
+    }
+
+    async function fetchDashboardQuarterData(quarter, forceRefresh) {
+      const normalizedQuarter = normalizeQuarterValue(quarter);
+      const promiseKey = normalizedQuarter + '|' + (forceRefresh === true ? 'force' : 'normal');
+
+      if (dashboardFetchPromises[promiseKey]) {
+        return dashboardFetchPromises[promiseKey];
+      }
+
+      dashboardFetchPromises[promiseKey] = apiGet({
+        action: 'dashboard',
+        forceRefresh: forceRefresh === true ? 'true' : 'false',
+        fundingSource: 'All',
+        quarter: normalizedQuarter
+      }).then(async data => {
+        await writeBrowserCacheEntry(normalizedQuarter, data);
+        return data;
+      }).finally(() => {
+        delete dashboardFetchPromises[promiseKey];
+      });
+
+      return dashboardFetchPromises[promiseKey];
+    }
+
+    function applyDashboardData(data, selectedQuarter) {
+      if (!data) return;
+
+      masterDashboardData = data;
+      isDashboardLoadedOnce = true;
+      renderDashboardByFundingSource(
+        getMainFundingSourceFilterValue(),
+        selectedQuarter || getMainQuarterFilterValue()
+      );
+    }
+
+    async function refreshActiveQuarterInBackground() {
+      if (!isDashboardLoadedOnce) return;
+
+      const selectedQuarter = getMainQuarterFilterValue();
+
+      try {
+        const data = await fetchDashboardQuarterData(selectedQuarter, false);
+
+        if (normalizeQuarterValue(getMainQuarterFilterValue()) === normalizeQuarterValue(selectedQuarter)) {
+          applyDashboardData(data, selectedQuarter);
+        }
+      } catch (error) {
+        console.warn('Background dashboard refresh failed:', error);
+      }
+    }
+
+    async function prefetchQuarterCaches(activeQuarter) {
+      if (quarterPrefetchStarted) return;
+      quarterPrefetchStarted = true;
+
+      const orderedQuarters = PREFETCH_QUARTERS.filter(quarter => {
+        return normalizeQuarterValue(quarter) !== normalizeQuarterValue(activeQuarter);
+      });
+
+      for (let i = 0; i < orderedQuarters.length; i++) {
+        const quarter = orderedQuarters[i];
+
+        try {
+          const cachedEntry = await readBrowserCacheEntry(quarter);
+          const cacheAge = cachedEntry ? Date.now() - Number(cachedEntry.savedAt || 0) : Infinity;
+
+          if (!cachedEntry || !cachedEntry.data || cacheAge > BROWSER_CACHE_MAX_STALE_MS) {
+            await fetchDashboardQuarterData(quarter, false);
+          }
+        } catch (error) {
+          console.warn('Quarter prefetch failed for ' + quarter + ':', error);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+    }
+
+    async function refreshCatchUpFilesInBackground() {
+      try {
+        const filesMap = await apiGet({ action: 'catchUpFiles' });
+        catchUpFilesMap = filesMap || {};
+
+        if (masterDashboardData) {
+          masterDashboardData.catchUpFiles = catchUpFilesMap;
+        }
+
+        Object.keys(dashboardMemoryCache).forEach(quarter => {
+          const entry = dashboardMemoryCache[quarter];
+
+          if (entry && entry.data) {
+            entry.data.catchUpFiles = catchUpFilesMap;
+            writeBrowserCacheEntry(quarter, entry.data);
+          }
+        });
+
+        if (masterDashboardData) {
+          masterDashboardData.catchUpFiles = catchUpFilesMap;
+          writeBrowserCacheEntry(getMainQuarterFilterValue(), masterDashboardData);
+        }
+
+        refreshCurrentAllocationRowsWithFiles();
+        renderAllocationTable(currentAllocationRows);
+      } catch (error) {
+        console.warn('Catch Up Plan refresh failed:', error);
+      }
+    }
+
     function fitDashboardToScreen() {
       const dashboard = document.getElementById('dashboard');
 
@@ -1583,14 +1802,47 @@
     }
 
     async function loadDashboard(forceRefresh) {
-      if (isDashboardLoading) return;
-
-      isDashboardLoading = true;
-      loadingStartedAt = Date.now();
-
+      const requestToken = ++activeDashboardRequestToken;
+      const selectedQuarter = normalizeQuarterValue(getMainQuarterFilterValue());
       const loader = document.getElementById('loader');
       const dashboard = document.getElementById('dashboard');
-      const selectedQuarter = getMainQuarterFilterValue();
+
+      loadingStartedAt = Date.now();
+
+      if (forceRefresh !== true) {
+        const cachedEntry = await readBrowserCacheEntry(selectedQuarter);
+        const cacheAge = cachedEntry ? Date.now() - Number(cachedEntry.savedAt || 0) : Infinity;
+
+        if (cachedEntry && cachedEntry.data && cacheAge <= BROWSER_CACHE_MAX_STALE_MS) {
+          if (requestToken !== activeDashboardRequestToken) return;
+
+          isDashboardLoading = false;
+          loader.style.display = 'none';
+          dashboard.style.display = 'block';
+          setDashboardRefreshState(false);
+          applyDashboardData(cachedEntry.data, selectedQuarter);
+
+          refreshCatchUpFilesInBackground();
+          prefetchQuarterCaches(selectedQuarter);
+
+          if (cacheAge > BACKGROUND_REFRESH_AGE_MS) {
+            fetchDashboardQuarterData(selectedQuarter, false)
+              .then(data => {
+                if (
+                  requestToken === activeDashboardRequestToken &&
+                  normalizeQuarterValue(getMainQuarterFilterValue()) === selectedQuarter
+                ) {
+                  applyDashboardData(data, selectedQuarter);
+                }
+              })
+              .catch(error => console.warn('Background quarter refresh failed:', error));
+          }
+
+          return;
+        }
+      }
+
+      isDashboardLoading = true;
 
       if (!isDashboardLoadedOnce) {
         loader.style.display = 'grid';
@@ -1603,29 +1855,35 @@
       }
 
       try {
-        const data = await apiGet({
-          action: 'dashboard',
-          forceRefresh: forceRefresh === true ? 'true' : 'false',
-          fundingSource: 'All',
-          quarter: selectedQuarter
-        });
+        const data = await fetchDashboardQuarterData(selectedQuarter, forceRefresh === true);
+
+        if (requestToken !== activeDashboardRequestToken) return;
 
         const elapsed = Date.now() - loadingStartedAt;
         const waitTime = isDashboardLoadedOnce ? 0 : Math.max(0, MIN_LOADING_TIME - elapsed);
 
         setTimeout(function() {
-          isDashboardLoading = false;
-          isDashboardLoadedOnce = true;
-          setDashboardRefreshState(false);
+          if (requestToken !== activeDashboardRequestToken) return;
 
-          masterDashboardData = data;
-          renderDashboardByFundingSource(getMainFundingSourceFilterValue(), getMainQuarterFilterValue());
+          isDashboardLoading = false;
+          setDashboardRefreshState(false);
+          applyDashboardData(data, selectedQuarter);
+          refreshCatchUpFilesInBackground();
+          prefetchQuarterCaches(selectedQuarter);
         }, waitTime);
 
       } catch (error) {
+        if (requestToken !== activeDashboardRequestToken) return;
+
         isDashboardLoading = false;
         setDashboardRefreshState(false);
-        showError(error);
+
+        if (!isDashboardLoadedOnce) {
+          showError(error);
+        } else {
+          console.error(error);
+          alert('Unable to refresh the selected quarter. The last loaded data will remain displayed.');
+        }
       }
     }
 
@@ -1658,7 +1916,9 @@
       const originalProjectSummary = masterDashboardData.projectSummary || [];
       const originalExpenseRows = masterDashboardData.expenseRows || [];
 
-      catchUpFilesMap = masterDashboardData.catchUpFiles || {};
+      if (!catchUpFilesMap || !Object.keys(catchUpFilesMap).length) {
+        catchUpFilesMap = masterDashboardData.catchUpFiles || {};
+      }
 
       let projectSummary = originalProjectSummary.filter(row => {
         const rowFunding = row.fundingSource || 'All';
@@ -1753,7 +2013,7 @@
           utilizationStatus: getUtilizationStatus(utilization),
           allocationStatus: allocationStatus,
           catchUpKey: catchUpKey,
-          catchUpFiles: item.catchUpFiles || catchUpFilesMap[catchUpKey] || []
+          catchUpFiles: catchUpFilesMap[catchUpKey] || []
         };
       });
 
@@ -1879,7 +2139,7 @@
           quarter: row.quarter
         });
 
-        const rowFiles = row.catchUpFiles || catchUpFilesMap[rowKey] || [];
+        const rowFiles = catchUpFilesMap[rowKey] || [];
         map[key].catchUpFiles = map[key].catchUpFiles.concat(rowFiles);
       });
 
@@ -2117,7 +2377,9 @@
       allExpenseRows = data.expenseRows || [];
       allProjects = data.filterProjects || [];
       allMonths = data.filterMonths || [];
-      catchUpFilesMap = data.catchUpFiles || catchUpFilesMap || {};
+      if (!catchUpFilesMap || !Object.keys(catchUpFilesMap).length) {
+        catchUpFilesMap = data.catchUpFiles || {};
+      }
 
       resetExpenseFundingFilterForMainSource(data.selectedFundingSource || 'All');
       populateExpenseFilters();
@@ -2283,7 +2545,7 @@
         const utilizationStatus = row.utilizationStatus || getUtilizationStatus(row.utilization);
         const utilizationStatusClass = getUtilizationStatusClass(utilizationStatus);
         const catchUpKey = row.catchUpKey || getCatchUpKey(row);
-        const files = row.catchUpFiles || catchUpFilesMap[catchUpKey] || [];
+        const files = catchUpFilesMap[catchUpKey] || [];
 
         const tr = document.createElement('tr');
 
@@ -2311,11 +2573,12 @@
     function renderCatchUpPlanCell(row, files) {
       const catchUpKey = row.catchUpKey || getCatchUpKey(row);
       const safeKey = encodeURIComponent(catchUpKey);
+      const uniqueFiles = getUniqueCatchUpFiles(files);
 
       let html = '';
 
-      if (files && files.length) {
-        files.forEach(file => {
+      if (uniqueFiles.length) {
+        uniqueFiles.forEach(file => {
           const displayFileName = escapeHtml(getCatchUpDisplayName(
             file.project || row.project,
             file.quarter || row.quarter
@@ -2354,6 +2617,63 @@
 
     function getCatchUpDisplayName(project, quarter) {
       return cleanKeyText(project || 'Program') + ' - ' + cleanKeyText(quarter || 'All Quarters');
+    }
+
+    function getUniqueCatchUpFiles(files) {
+      const sourceFiles = Array.isArray(files) ? files : [];
+      const seen = {};
+      const uniqueReversed = [];
+
+      // Read newest to oldest so the latest copy is the one shown.
+      for (let index = sourceFiles.length - 1; index >= 0; index--) {
+        const file = sourceFiles[index] || {};
+        const identity = getCatchUpFileIdentity(file);
+
+        if (seen[identity]) continue;
+
+        seen[identity] = true;
+        uniqueReversed.push(file);
+      }
+
+      return uniqueReversed.reverse();
+    }
+
+    function getCatchUpFileIdentity(file) {
+      const contentHash = String(file.contentHash || '').trim().toLowerCase();
+
+      if (contentHash) {
+        return 'hash|' + contentHash;
+      }
+
+      // Legacy uploads did not yet store a content hash. For those records,
+      // use their original filename, MIME type, and size when available.
+      const originalName = String(
+        file.originalName || file.uploadedOriginalName || ''
+      ).trim().toLowerCase();
+
+      const mimeType = String(file.mimeType || '').trim().toLowerCase();
+      const fileSize = Number(file.fileSize || 0);
+
+      if (originalName) {
+        return [
+          'legacy',
+          originalName,
+          mimeType,
+          fileSize > 0 ? String(fileSize) : 'unknown-size'
+        ].join('|');
+      }
+
+      const fileId = String(file.id || file.fileId || '').trim();
+
+      if (fileId) {
+        return 'id|' + fileId;
+      }
+
+      return [
+        'fallback',
+        String(file.name || file.fileName || '').trim().toLowerCase(),
+        mimeType
+      ].join('|');
     }
 
     function chooseCatchUpFile(encodedKey) {
@@ -2403,6 +2723,7 @@
           quarter: row.quarter,
           fileName: file.name,
           mimeType: file.type || 'application/octet-stream',
+          fileSize: Number(file.size || 0),
           base64: base64
         };
 
@@ -2415,6 +2736,15 @@
             catchUpFilesMap = result.catchUpFiles;
           } else if (result && result.files) {
             catchUpFilesMap[catchUpKey] = result.files;
+          }
+
+          if (result && result.duplicate === true) {
+            alert('This same Catch Up Plan file is already uploaded. Only one copy will be shown.');
+          }
+
+          if (masterDashboardData) {
+            masterDashboardData.catchUpFiles = catchUpFilesMap;
+            writeBrowserCacheEntry(getMainQuarterFilterValue(), masterDashboardData);
           }
 
           refreshCurrentAllocationRowsWithFiles();
@@ -2459,6 +2789,11 @@
           catchUpFilesMap = result.catchUpFiles;
         } else if (result && result.files) {
           catchUpFilesMap[catchUpKey] = result.files;
+        }
+
+        if (masterDashboardData) {
+          masterDashboardData.catchUpFiles = catchUpFilesMap;
+          writeBrowserCacheEntry(getMainQuarterFilterValue(), masterDashboardData);
         }
 
         refreshCurrentAllocationRowsWithFiles();
@@ -2514,7 +2849,7 @@
     function refreshCurrentAllocationRowsWithFiles() {
       currentAllocationRows = currentAllocationRows.map(row => {
         const key = row.catchUpKey || getCatchUpKey(row);
-        row.catchUpFiles = catchUpFilesMap[key] || row.catchUpFiles || [];
+        row.catchUpFiles = catchUpFilesMap[key] || [];
         row.isUploadingCatchUpFile = false;
         return row;
       });
