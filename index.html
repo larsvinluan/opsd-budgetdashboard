@@ -580,6 +580,91 @@
       margin-top: 8px;
     }
 
+    /* Project Allocation per Quarter only: Excel-style frozen header */
+    .allocation-table-scroll {
+      --allocation-header-row-one-height: 44px;
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      max-height: 70vh;
+      overflow-x: auto;
+      overflow-y: auto;
+      border: 1px solid rgba(52, 223, 255, 0.96);
+      border-radius: 8px;
+      box-shadow:
+        0 0 8px rgba(0, 166, 255, 0.62),
+        inset 0 0 8px rgba(52, 223, 255, 0.10);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(52, 223, 255, 0.72) rgba(2, 12, 32, 0.82);
+    }
+
+    .allocation-table-scroll::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    .allocation-table-scroll::-webkit-scrollbar-track {
+      background: rgba(2, 12, 32, 0.82);
+      border-radius: 999px;
+    }
+
+    .allocation-table-scroll::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #0d86ff, #34dfff);
+      border: 2px solid rgba(2, 12, 32, 0.82);
+      border-radius: 999px;
+    }
+
+    .allocation-table-scroll table {
+      margin: 0;
+      overflow: visible;
+      border: 0;
+      border-radius: 7px;
+      box-shadow: none;
+    }
+
+    .allocation-table-scroll thead th {
+      position: sticky;
+      z-index: 30;
+      border-right: 1px solid rgba(74, 229, 255, 1) !important;
+      border-bottom: 1px solid rgba(74, 229, 255, 1) !important;
+      box-shadow:
+        inset -1px 0 0 rgba(127, 239, 255, 0.32),
+        inset 0 -1px 0 rgba(127, 239, 255, 0.38),
+        0 3px 10px rgba(0, 166, 255, 0.34);
+    }
+
+    .allocation-table-scroll thead tr:first-child th {
+      top: 0;
+      z-index: 32;
+    }
+
+    .allocation-table-scroll thead tr:nth-child(2) th {
+      top: var(--allocation-header-row-one-height);
+      z-index: 31;
+    }
+
+    .allocation-table-scroll th,
+    .allocation-table-scroll td {
+      border-right: 1px solid rgba(52, 223, 255, 0.88) !important;
+      border-bottom: 1px solid rgba(52, 223, 255, 0.78) !important;
+    }
+
+    .allocation-table-scroll tbody td {
+      box-shadow:
+        inset -1px 0 0 rgba(52, 223, 255, 0.08),
+        inset 0 -1px 0 rgba(52, 223, 255, 0.08);
+    }
+
+    .allocation-table-scroll tr > th:last-child,
+    .allocation-table-scroll tr > td:last-child {
+      border-right: 0 !important;
+    }
+
+    .allocation-table-scroll tfoot td {
+      border-top: 1px solid rgba(55, 240, 138, 0.78) !important;
+      border-bottom: 0 !important;
+    }
+
     .expense-filter-bar {
       display: grid;
       grid-template-columns: 1.45fr 1fr 0.7fr 0.8fr minmax(130px, 150px);
@@ -753,6 +838,7 @@
     }
 
     .catchup-upload-button,
+    .catchup-view-button,
     .catchup-download-button,
     .catchup-delete-button {
       border: none;
@@ -766,11 +852,13 @@
       text-underline-offset: 3px;
     }
 
-    .catchup-upload-button {
+    .catchup-upload-button,
+    .catchup-view-button {
       color: #38d9ff;
     }
 
-    .catchup-upload-button:hover {
+    .catchup-upload-button:hover,
+    .catchup-view-button:hover {
       color: #ffffff;
     }
 
@@ -1061,6 +1149,7 @@
             <option value="All">Annual / All Quarters</option>
             <option value="1st Quarter">1st Quarter</option>
             <option value="2nd Quarter">2nd Quarter</option>
+            <option value="3rd Quarter">3rd Quarter</option>
           </select>
         </div>
 
@@ -1079,6 +1168,7 @@
             <option value="All">Annual / All Quarters</option>
             <option value="1st Quarter">Jan 1, 2026 - Mar 31, 2026</option>
             <option value="2nd Quarter">Apr 1, 2026 - Jun 30, 2026</option>
+            <option value="3rd Quarter">Jul 1, 2026 - Sep 30, 2026</option>
           </select>
         </div>
 
@@ -1170,13 +1260,14 @@
       </div>
     </section>
 
-    <section class="panel table-panel">
+    <section class="panel table-panel allocation-table-panel">
       <div class="panel-title">
         <div class="logo-badge">▣</div>
         <h2>Project Allocation per Quarter</h2>
         <span class="tag">Budget status</span>
       </div>
 
+      <div id="allocationTableScroll" class="allocation-table-scroll">
       <table>
         <thead>
           <tr>
@@ -1216,6 +1307,7 @@
           </tr>
         </tfoot>
       </table>
+      </div>
     </section>
 
     <section class="grid-main">
@@ -1389,8 +1481,15 @@
     bindMainFilters();
     loadDashboard(false);
 
-    window.addEventListener('resize', fitDashboardToScreen);
-    window.addEventListener('load', fitDashboardToScreen);
+    window.addEventListener('resize', function() {
+      fitDashboardToScreen();
+      updateAllocationStickyHeaderHeight();
+    });
+
+    window.addEventListener('load', function() {
+      fitDashboardToScreen();
+      updateAllocationStickyHeaderHeight();
+    });
 
     setInterval(function() {
       if (!isDashboardLoading) {
@@ -2151,6 +2250,22 @@
       fitDashboardToScreen();
     }
 
+    function updateAllocationStickyHeaderHeight() {
+      const scrollWrap = document.getElementById('allocationTableScroll');
+
+      if (!scrollWrap) return;
+
+      const firstHeaderRow = scrollWrap.querySelector('thead tr:first-child');
+
+      if (!firstHeaderRow) return;
+
+      const rowHeight = Math.ceil(firstHeaderRow.getBoundingClientRect().height);
+
+      if (rowHeight > 0) {
+        scrollWrap.style.setProperty('--allocation-header-row-one-height', rowHeight + 'px');
+      }
+    }
+
     function renderAllocationTable(rows) {
       const tbody = document.getElementById('allocationTable');
       tbody.innerHTML = '';
@@ -2159,6 +2274,7 @@
 
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="12">No allocation data found.</td></tr>';
+        requestAnimationFrame(updateAllocationStickyHeaderHeight);
         return;
       }
 
@@ -2188,6 +2304,8 @@
 
         tbody.appendChild(tr);
       });
+
+      requestAnimationFrame(updateAllocationStickyHeaderHeight);
     }
 
     function renderCatchUpPlanCell(row, files) {
@@ -2198,14 +2316,19 @@
 
       if (files && files.length) {
         files.forEach(file => {
-          const fileName = escapeHtml(file.name || file.fileName || 'Uploaded file');
+          const displayFileName = escapeHtml(getCatchUpDisplayName(
+            file.project || row.project,
+            file.quarter || row.quarter
+          ));
           const fileId = escapeHtml(file.id || file.fileId || '');
+          const viewUrl = escapeHtml(file.viewUrl || file.url || '#');
           const downloadUrl = escapeHtml(file.downloadUrl || file.url || '#');
 
           html += `
             <div class="catchup-file-row">
-              <span class="catchup-file-name">📎 ${fileName}</span>
+              <span class="catchup-file-name">📎 ${displayFileName}</span>
               <div class="catchup-actions">
+                <button class="catchup-view-button" type="button" onclick="viewCatchUpFile('${viewUrl}')">View</button>
                 <button class="catchup-download-button" type="button" onclick="downloadCatchUpFile('${downloadUrl}')">Download</button>
                 <button class="catchup-delete-button" type="button" onclick="deleteCatchUpFile('${safeKey}', '${fileId}')">Delete</button>
               </div>
@@ -2227,6 +2350,10 @@
       }
 
       return html;
+    }
+
+    function getCatchUpDisplayName(project, quarter) {
+      return cleanKeyText(project || 'Program') + ' - ' + cleanKeyText(quarter || 'All Quarters');
     }
 
     function chooseCatchUpFile(encodedKey) {
@@ -2342,6 +2469,15 @@
       }
     }
 
+    function viewCatchUpFile(viewUrl) {
+      if (!viewUrl || viewUrl === '#') {
+        alert('View link not available.');
+        return;
+      }
+
+      window.open(viewUrl, '_blank');
+    }
+
     function downloadCatchUpFile(downloadUrl) {
       if (!downloadUrl || downloadUrl === '#') {
         alert('Download link not available.');
@@ -2433,13 +2569,6 @@
       const labels = chartRows.map(r => r.project);
       const values = chartRows.map(r => Number(r.approvedBudget || 0));
 
-      const chartPoints = values.map((value, index) => {
-        return {
-          x: index,
-          y: value
-        };
-      });
-
       const canvas = document.getElementById('dailyExpenseChart');
       const ctx = canvas.getContext('2d');
 
@@ -2453,9 +2582,10 @@
       dailyExpenseChart = new Chart(ctx, {
         type: 'line',
         data: {
+          labels: labels,
           datasets: [{
             label: 'Approved Budget per Project',
-            data: chartPoints,
+            data: values,
             borderColor: '#34dfff',
             backgroundColor: gradient,
             pointBackgroundColor: '#ffffff',
@@ -2473,7 +2603,6 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          parsing: false,
           layout: {
             padding: {
               top: 26,
@@ -2493,11 +2622,10 @@
               displayColors: false,
               callbacks: {
                 title: function(context) {
-                  const index = context[0].raw.x;
-                  return labels[index] || '';
+                  return context[0] && context[0].label ? context[0].label : '';
                 },
                 label: function(context) {
-                  return formatPeso(context.raw.y);
+                  return formatPeso(context.parsed.y);
                 }
               }
             }
@@ -2524,9 +2652,8 @@
               }
             },
             x: {
-              type: 'linear',
-              min: -0.35,
-              max: labels.length - 0.65,
+              type: 'category',
+              offset: true,
               border: {
                 display: false
               },
@@ -2534,7 +2661,7 @@
                 display: false
               },
               ticks: {
-                stepSize: 1,
+                autoSkip: false,
                 color: '#d5e9ff',
                 padding: 12,
                 font: {
@@ -2542,14 +2669,7 @@
                   weight: '800'
                 },
                 maxRotation: 28,
-                minRotation: 28,
-                callback: function(value) {
-                  if (Number.isInteger(value) && labels[value]) {
-                    return labels[value];
-                  }
-
-                  return '';
-                }
+                minRotation: 28
               }
             }
           }
