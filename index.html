@@ -1328,7 +1328,7 @@
           <h2>Remaining Budget per Project</h2>
           <span class="tag">Available balance</span>
         </div>
-        <div class="chart-box">
+        <div id="remainingBudgetChartBox" class="chart-box">
           <canvas id="remainingBudgetChart"></canvas>
         </div>
       </div>
@@ -1396,13 +1396,13 @@
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGQZBXrVjq8Brhd_mgiX6H_MaIRx4ZBQtBJOikVYjzMN1v0ZvtW5xknA-IAp5u0OGM/exec';
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
-    const AUTO_REFRESH_INTERVAL_MS = 120000;
+    const AUTO_REFRESH_INTERVAL_MS = 30000;
     const BROWSER_CACHE_DB_NAME = 'OPSD_Budget_Dashboard_Cache';
     const BROWSER_CACHE_STORE_NAME = 'quarterData';
     const BROWSER_CACHE_VERSION = 1;
-    const BROWSER_CACHE_KEY_PREFIX = 'v4-20260725|';
+    const BROWSER_CACHE_KEY_PREFIX = 'v5-20260806|';
     const BROWSER_CACHE_MAX_STALE_MS = 24 * 60 * 60 * 1000;
-    const BACKGROUND_REFRESH_AGE_MS = 2 * 60 * 1000;
+    const BACKGROUND_REFRESH_AGE_MS = 30 * 1000;
     const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', 'All'];
 
     let dailyExpenseChart;
@@ -3043,7 +3043,18 @@
       const labels = chartRows.map(r => r.project);
       const values = chartRows.map(r => Number(r.remainingBudget || 0));
 
-      const ctx = document.getElementById('remainingBudgetChart').getContext('2d');
+      const canvas = document.getElementById('remainingBudgetChart');
+      const chartBox = document.getElementById('remainingBudgetChartBox');
+      const labelCount = Math.max(labels.length, 1);
+      const labelFontSize = labelCount > 16 ? 8 : (labelCount > 12 ? 9 : 10);
+      const barThickness = labelCount > 16 ? 8 : (labelCount > 12 ? 9 : 11);
+
+      // Keep the original compact chart height while forcing every project label to appear.
+      if (chartBox) {
+        chartBox.style.height = '255px';
+      }
+
+      const ctx = canvas.getContext('2d');
 
       if (remainingBudgetChart) remainingBudgetChart.destroy();
 
@@ -3057,14 +3068,25 @@
             backgroundColor: labels.map((_, i) => getUniqueChartColor(i)),
             borderColor: labels.map((_, i) => getUniqueChartColor(i)),
             borderWidth: 1,
-            borderRadius: 8,
-            barThickness: 20
+            borderRadius: 6,
+            barThickness: barThickness,
+            maxBarThickness: 11,
+            categoryPercentage: 1,
+            barPercentage: 0.82
           }]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              top: 2,
+              right: 8,
+              bottom: 0,
+              left: 2
+            }
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -3087,15 +3109,26 @@
               },
               ticks: {
                 color: '#b9d7ff',
+                font: {
+                  size: 10,
+                  weight: '600'
+                },
                 callback: value => formatPesoShort(value)
               }
             },
             y: {
+              offset: true,
               grid: {
                 display: false
               },
               ticks: {
-                color: '#b9d7ff'
+                autoSkip: false,
+                padding: 4,
+                color: '#d5e9ff',
+                font: {
+                  size: labelFontSize,
+                  weight: '700'
+                }
               }
             }
           }
