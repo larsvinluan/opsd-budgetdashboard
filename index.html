@@ -1400,7 +1400,7 @@
     const BROWSER_CACHE_DB_NAME = 'OPSD_Budget_Dashboard_Cache';
     const BROWSER_CACHE_STORE_NAME = 'quarterData';
     const BROWSER_CACHE_VERSION = 1;
-    const BROWSER_CACHE_KEY_PREFIX = 'v5-20260806|';
+    const BROWSER_CACHE_KEY_PREFIX = 'v7-20260806-catchup-final|';
     const BROWSER_CACHE_MAX_STALE_MS = 24 * 60 * 60 * 1000;
     const BACKGROUND_REFRESH_AGE_MS = 30 * 1000;
     const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', 'All'];
@@ -1492,6 +1492,7 @@
 
     loadLogo();
     bindMainFilters();
+    bindCatchUpPlanActions();
     loadDashboard(false);
 
     window.addEventListener('resize', function() {
@@ -1701,6 +1702,11 @@
       if (!data) return;
 
       masterDashboardData = data;
+
+      if (data.catchUpFiles && typeof data.catchUpFiles === 'object') {
+        catchUpFilesMap = data.catchUpFiles;
+      }
+
       isDashboardLoadedOnce = true;
       renderDashboardByFundingSource(
         getMainFundingSourceFilterValue(),
@@ -1773,8 +1779,10 @@
           writeBrowserCacheEntry(getMainQuarterFilterValue(), masterDashboardData);
         }
 
-        refreshCurrentAllocationRowsWithFiles();
-        renderAllocationTable(currentAllocationRows);
+        renderDashboardByFundingSource(
+          getMainFundingSourceFilterValue(),
+          getMainQuarterFilterValue()
+        );
       } catch (error) {
         console.warn('Catch Up Plan refresh failed:', error);
       }
@@ -2013,7 +2021,7 @@
           utilizationStatus: getUtilizationStatus(utilization),
           allocationStatus: allocationStatus,
           catchUpKey: catchUpKey,
-          catchUpFiles: catchUpFilesMap[catchUpKey] || []
+          catchUpFiles: getCatchUpFilesForRow(item)
         };
       });
 
@@ -2139,8 +2147,14 @@
           quarter: row.quarter
         });
 
-        const rowFiles = catchUpFilesMap[rowKey] || [];
-        map[key].catchUpFiles = map[key].catchUpFiles.concat(rowFiles);
+        const rowFiles = getUniqueCatchUpFiles(
+          (Array.isArray(row.catchUpFiles) ? row.catchUpFiles : [])
+            .concat(catchUpFilesMap[rowKey] || [])
+        );
+
+        map[key].catchUpFiles = getUniqueCatchUpFiles(
+          map[key].catchUpFiles.concat(rowFiles)
+        );
       });
 
       return order.map(key => {
@@ -2154,8 +2168,7 @@
           quarter: item.quarter
         });
 
-        const annualFiles = catchUpFilesMap[item.catchUpKey] || [];
-        item.catchUpFiles = item.catchUpFiles.concat(annualFiles);
+        item.catchUpFiles = getCatchUpFilesForRow(item);
 
         return item;
       });
@@ -2540,12 +2553,11 @@
         return;
       }
 
-      rows.forEach(row => {
+      rows.forEach((row, rowIndex) => {
         const statusClass = getAllocationStatusClass(row.allocationStatus);
         const utilizationStatus = row.utilizationStatus || getUtilizationStatus(row.utilization);
         const utilizationStatusClass = getUtilizationStatusClass(utilizationStatus);
-        const catchUpKey = row.catchUpKey || getCatchUpKey(row);
-        const files = catchUpFilesMap[catchUpKey] || [];
+        const files = getCatchUpFilesForRow(row);
 
         const tr = document.createElement('tr');
 
@@ -2561,7 +2573,7 @@
           <td>${formatPercent(row.utilization)}</td>
           <td><span class="${utilizationStatusClass}">${escapeHtml(utilizationStatus)}</span></td>
           <td><span class="${statusClass}">${escapeHtml(row.allocationStatus)}</span></td>
-          <td class="catchup-cell">${renderCatchUpPlanCell(row, files)}</td>
+          <td class="catchup-cell">${renderCatchUpPlanCell(row, files, rowIndex)}</td>
         `;
 
         tbody.appendChild(tr);
@@ -2570,11 +2582,12 @@
       requestAnimationFrame(updateAllocationStickyHeaderHeight);
     }
 
-    function renderCatchUpPlanCell(row, files) {
-      const catchUpKey = row.catchUpKey || getCatchUpKey(row);
-      const safeKey = encodeURIComponent(catchUpKey);
-      const uniqueFiles = getUniqueCatchUpFiles(files);
+    function renderCatchUpPlanCell(row, files, rowIndex) {
+      if (row.isUploadingCatchUpFile) {
+        return '<span class="catchup-uploading">Uploading...</span>';
+      }
 
+      const uniqueFiles = getUniqueCatchUpFiles(files);
       let html = '';
 
       if (uniqueFiles.length) {
@@ -2584,6 +2597,9 @@
             file.quarter || row.quarter
           ));
           const fileId = escapeHtml(file.id || file.fileId || '');
+          const fileCatchUpKey = escapeHtml(
+            file.catchUpKey || getPersistentCatchUpKey(row)
+          );
           const viewUrl = escapeHtml(file.viewUrl || file.url || '#');
           const downloadUrl = escapeHtml(file.downloadUrl || file.url || '#');
 
@@ -2591,28 +2607,94 @@
             <div class="catchup-file-row">
               <span class="catchup-file-name">📎 ${displayFileName}</span>
               <div class="catchup-actions">
-                <button class="catchup-view-button" type="button" onclick="viewCatchUpFile('${viewUrl}')">View</button>
-                <button class="catchup-download-button" type="button" onclick="downloadCatchUpFile('${downloadUrl}')">Download</button>
-                <button class="catchup-delete-button" type="button" onclick="deleteCatchUpFile('${safeKey}', '${fileId}')">Delete</button>
+                <button
+                  class="catchup-view-button"
+                  type="button"
+                  data-catchup-action="view"
+                  data-url="${viewUrl}"
+                >View</button>
+                <button
+                  class="catchup-download-button"
+                  type="button"
+                  data-catchup-action="download"
+                  data-url="${downloadUrl}"
+                >Download</button>
+                <button
+                  class="catchup-delete-button"
+                  type="button"
+                  data-catchup-action="delete"
+                  data-catchup-key="${fileCatchUpKey}"
+                  data-file-id="${fileId}"
+                >Delete</button>
               </div>
             </div>
           `;
         });
 
         html += `
-          <button class="catchup-upload-button" type="button" onclick="chooseCatchUpFile('${safeKey}')">
-            Upload another file
-          </button>
+          <button
+            class="catchup-upload-button"
+            type="button"
+            data-catchup-action="upload"
+            data-row-index="${rowIndex}"
+          >Upload another file</button>
         `;
       } else {
         html = `
-          <button class="catchup-upload-button" type="button" onclick="chooseCatchUpFile('${safeKey}')">
-            Upload file here
-          </button>
+          <button
+            class="catchup-upload-button"
+            type="button"
+            data-catchup-action="upload"
+            data-row-index="${rowIndex}"
+          >Upload file here</button>
         `;
       }
 
       return html;
+    }
+
+    function bindCatchUpPlanActions() {
+      const tbody = document.getElementById('allocationTable');
+
+      if (!tbody || tbody.dataset.catchupActionsBound === 'true') {
+        return;
+      }
+
+      tbody.dataset.catchupActionsBound = 'true';
+
+      tbody.addEventListener('click', function(event) {
+        const button = event.target.closest('button[data-catchup-action]');
+
+        if (!button || !tbody.contains(button)) {
+          return;
+        }
+
+        event.preventDefault();
+
+        const action = button.dataset.catchupAction || '';
+
+        if (action === 'upload') {
+          chooseCatchUpFile(Number(button.dataset.rowIndex));
+          return;
+        }
+
+        if (action === 'view') {
+          viewCatchUpFile(button.dataset.url || '');
+          return;
+        }
+
+        if (action === 'download') {
+          downloadCatchUpFile(button.dataset.url || '');
+          return;
+        }
+
+        if (action === 'delete') {
+          deleteCatchUpFile(
+            button.dataset.catchupKey || '',
+            button.dataset.fileId || ''
+          );
+        }
+      });
     }
 
     function getCatchUpDisplayName(project, quarter) {
@@ -2676,9 +2758,8 @@
       ].join('|');
     }
 
-    function chooseCatchUpFile(encodedKey) {
-      const catchUpKey = decodeURIComponent(encodedKey);
-      const row = findAllocationRowByCatchUpKey(catchUpKey);
+    function chooseCatchUpFile(rowIndex) {
+      const row = currentAllocationRows[rowIndex];
 
       if (!row) {
         alert('Project row not found. Please refresh the dashboard and try again.');
@@ -2697,7 +2778,7 @@
           return;
         }
 
-        uploadCatchUpFile(row, file);
+        uploadCatchUpFile(row, file, rowIndex);
         document.body.removeChild(input);
       };
 
@@ -2705,9 +2786,11 @@
       input.click();
     }
 
-    function uploadCatchUpFile(row, file) {
-      const catchUpKey = row.catchUpKey || getCatchUpKey(row);
-      setCatchUpUploadingState(catchUpKey, true);
+    function uploadCatchUpFile(row, file, rowIndex) {
+      // New uploads are stored under a project-level key. This keeps the file
+      // visible when the same project is viewed in another quarter.
+      const catchUpKey = getPersistentCatchUpKey(row);
+      setCatchUpUploadingState(rowIndex, true);
 
       const reader = new FileReader();
 
@@ -2730,7 +2813,7 @@
         try {
           const result = await apiPost(payload);
 
-          setCatchUpUploadingState(catchUpKey, false);
+          setCatchUpUploadingState(rowIndex, false);
 
           if (result && result.catchUpFiles) {
             catchUpFilesMap = result.catchUpFiles;
@@ -2747,18 +2830,20 @@
             writeBrowserCacheEntry(getMainQuarterFilterValue(), masterDashboardData);
           }
 
-          refreshCurrentAllocationRowsWithFiles();
-          renderAllocationTable(currentAllocationRows);
+          renderDashboardByFundingSource(
+            getMainFundingSourceFilterValue(),
+            getMainQuarterFilterValue()
+          );
 
         } catch (error) {
-          setCatchUpUploadingState(catchUpKey, false);
+          setCatchUpUploadingState(rowIndex, false);
           alert('Upload failed: ' + (error.message || error));
           renderAllocationTable(currentAllocationRows);
         }
       };
 
       reader.onerror = function() {
-        setCatchUpUploadingState(catchUpKey, false);
+        setCatchUpUploadingState(rowIndex, false);
         alert('Unable to read the selected file.');
         renderAllocationTable(currentAllocationRows);
       };
@@ -2766,8 +2851,11 @@
       reader.readAsDataURL(file);
     }
 
-    async function deleteCatchUpFile(encodedKey, fileId) {
-      const catchUpKey = decodeURIComponent(encodedKey);
+    async function deleteCatchUpFile(catchUpKey, fileId) {
+      if (!catchUpKey) {
+        alert('Catch Up Plan record key not found.');
+        return;
+      }
 
       if (!fileId) {
         alert('File ID not found.');
@@ -2796,8 +2884,10 @@
           writeBrowserCacheEntry(getMainQuarterFilterValue(), masterDashboardData);
         }
 
-        refreshCurrentAllocationRowsWithFiles();
-        renderAllocationTable(currentAllocationRows);
+        renderDashboardByFundingSource(
+          getMainFundingSourceFilterValue(),
+          getMainQuarterFilterValue()
+        );
 
       } catch (error) {
         alert('Delete failed: ' + (error.message || error));
@@ -2822,44 +2912,91 @@
       window.open(downloadUrl, '_blank');
     }
 
-    function setCatchUpUploadingState(catchUpKey, isUploading) {
-      catchUpFilesMap[catchUpKey] = catchUpFilesMap[catchUpKey] || [];
+    function setCatchUpUploadingState(rowIndex, isUploading) {
+      const row = currentAllocationRows[rowIndex];
 
-      currentAllocationRows = currentAllocationRows.map(row => {
-        const rowKey = row.catchUpKey || getCatchUpKey(row);
+      if (!row) return;
 
-        if (rowKey === catchUpKey) {
-          row.isUploadingCatchUpFile = isUploading;
-        }
-
-        return row;
-      });
-
-      const tbody = document.getElementById('allocationTable');
-
-      if (!tbody) return;
-
-      Array.from(tbody.querySelectorAll('.catchup-cell')).forEach(cell => {
-        if (cell.innerHTML.indexOf(encodeURIComponent(catchUpKey)) >= 0 && isUploading) {
-          cell.innerHTML = '<span class="catchup-uploading">Uploading...</span>';
-        }
-      });
+      row.isUploadingCatchUpFile = isUploading;
+      renderAllocationTable(currentAllocationRows);
     }
 
     function refreshCurrentAllocationRowsWithFiles() {
       currentAllocationRows = currentAllocationRows.map(row => {
-        const key = row.catchUpKey || getCatchUpKey(row);
-        row.catchUpFiles = catchUpFilesMap[key] || [];
+        row.catchUpFiles = getCatchUpFilesForRow(row);
         row.isUploadingCatchUpFile = false;
         return row;
       });
     }
 
-    function findAllocationRowByCatchUpKey(catchUpKey) {
-      return currentAllocationRows.find(row => {
-        const key = row.catchUpKey || getCatchUpKey(row);
-        return key === catchUpKey;
+    function getPersistentCatchUpKey(row) {
+      return [
+        'PROJECT',
+        cleanKeyText(row.fundingSource || 'All'),
+        cleanKeyText(row.project || '')
+      ].join('|');
+    }
+
+    function getCatchUpFilesForRow(row) {
+      const targetFunding = normalizeCatchUpFunding(row.fundingSource || 'All');
+      const targetProject = normalizeCatchUpProject(row.project || '');
+      let files = Array.isArray(row.catchUpFiles)
+        ? row.catchUpFiles.slice()
+        : [];
+
+      Object.keys(catchUpFilesMap || {}).forEach(mapKey => {
+        const records = Array.isArray(catchUpFilesMap[mapKey])
+          ? catchUpFilesMap[mapKey]
+          : [];
+
+        const parsedKey = parseCatchUpMapKey(mapKey);
+
+        records.forEach(file => {
+          const fileFunding = normalizeCatchUpFunding(
+            file.fundingSource || parsedKey.fundingSource || 'All'
+          );
+          const fileProject = normalizeCatchUpProject(
+            file.project || parsedKey.project || ''
+          );
+
+          if (
+            fileFunding === targetFunding &&
+            fileProject === targetProject
+          ) {
+            files.push(file);
+          }
+        });
       });
+
+      return getUniqueCatchUpFiles(files);
+    }
+
+    function parseCatchUpMapKey(mapKey) {
+      const parts = String(mapKey || '').split('|');
+
+      if (parts[0] === 'PROJECT') {
+        return {
+          fundingSource: parts[1] || 'All',
+          project: parts.slice(2).join('|')
+        };
+      }
+
+      return {
+        fundingSource: parts[0] || 'All',
+        project: parts.slice(2).join('|')
+      };
+    }
+
+    function normalizeCatchUpFunding(value) {
+      return cleanKeyText(value || 'All').toUpperCase();
+    }
+
+    function normalizeCatchUpProject(value) {
+      return String(value || '')
+        .replace(/[’‘`]/g, "'")
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase();
     }
 
     function getCatchUpKey(row) {
