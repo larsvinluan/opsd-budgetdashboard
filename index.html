@@ -576,6 +576,563 @@
         0 0 18px rgba(0, 166, 255, 0.08);
     }
 
+
+    /* Approved Budget per Project: ranked vertical column chart */
+    .approved-budget-column-box {
+      height: 390px;
+      min-height: 390px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0;
+      background:
+        linear-gradient(180deg, rgba(2, 12, 32, 0.82), rgba(2, 12, 32, 0.62));
+      border: 1px solid rgba(52, 223, 255, 0.24);
+      border-radius: 9px;
+      box-shadow:
+        inset 0 0 20px rgba(52, 223, 255, 0.05),
+        0 0 18px rgba(0, 166, 255, 0.08);
+    }
+
+    .approved-budget-column-content {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(190px, 0.72fr) minmax(420px, 1.78fr);
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .approved-budget-highlight,
+    .approved-budget-column-chart-panel {
+      min-width: 0;
+      min-height: 0;
+      border: 1px solid rgba(52, 223, 255, 0.24);
+      border-radius: 9px;
+      background:
+        linear-gradient(180deg, rgba(3, 22, 50, 0.94), rgba(2, 14, 35, 0.94));
+      box-shadow: inset 0 0 18px rgba(52, 223, 255, 0.04);
+    }
+
+    .approved-budget-highlight {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 14px 12px;
+      text-align: center;
+    }
+
+    .approved-budget-highlight-label {
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .approved-budget-ring {
+      --approved-share-deg: 0deg;
+      position: relative;
+      width: 142px;
+      height: 142px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background:
+        conic-gradient(
+          #29d8ff 0deg,
+          #29d8ff var(--approved-share-deg),
+          rgba(25, 64, 108, 0.92) var(--approved-share-deg),
+          rgba(25, 64, 108, 0.92) 360deg
+        );
+      box-shadow:
+        0 0 18px rgba(41, 216, 255, 0.18),
+        inset 0 0 14px rgba(255, 255, 255, 0.04);
+    }
+
+    .approved-budget-ring::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 30%, rgba(5, 28, 62, 0.98), rgba(2, 12, 32, 0.99));
+      box-shadow: inset 0 0 12px rgba(52, 223, 255, 0.06);
+    }
+
+    .approved-budget-ring-center {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.05;
+    }
+
+    .approved-budget-ring-percent {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.6px;
+    }
+
+    .approved-budget-ring-caption {
+      margin-top: 7px;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .approved-budget-highlight-project {
+      max-width: 100%;
+      color: #ffffff;
+      font-size: 21px;
+      line-height: 1.05;
+      font-weight: 900;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .approved-budget-highlight-caption {
+      margin-top: 4px;
+      color: #89cfff;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .approved-budget-highlight-amount {
+      margin-top: 4px;
+      color: var(--cyan);
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .approved-budget-total {
+      width: 100%;
+      padding-top: 9px;
+      border-top: 1px solid rgba(52, 223, 255, 0.22);
+      color: #b9d7ff;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.25px;
+    }
+
+    .approved-budget-total strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--cyan);
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .approved-budget-column-chart-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .approved-budget-column-chart-header {
+      flex: 0 0 42px;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 12px;
+      border-bottom: 1px solid rgba(52, 223, 255, 0.22);
+      background: linear-gradient(180deg, rgba(5, 37, 77, 0.98), rgba(3, 24, 55, 0.98));
+    }
+
+    .approved-budget-column-chart-title {
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .approved-budget-column-legend {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #d5e9ff;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .approved-budget-column-legend-mark {
+      width: 12px;
+      height: 9px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #34dfff, #0d86ff);
+      box-shadow: 0 0 7px rgba(52, 223, 255, 0.50);
+    }
+
+    .approved-budget-column-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(52, 223, 255, 0.70) rgba(2, 12, 32, 0.80);
+    }
+
+    .approved-budget-column-scroll::-webkit-scrollbar {
+      height: 7px;
+    }
+
+    .approved-budget-column-scroll::-webkit-scrollbar-track {
+      background: rgba(2, 12, 32, 0.80);
+    }
+
+    .approved-budget-column-scroll::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, #0d86ff, #34dfff);
+      border-radius: 999px;
+    }
+
+    .approved-budget-column-canvas-wrap {
+      position: relative;
+      height: 100%;
+      min-width: 100%;
+      padding: 5px 8px 0;
+    }
+
+    .approved-budget-column-status {
+      flex: 0 0 25px;
+      min-height: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      border-top: 1px solid rgba(52, 223, 255, 0.12);
+      color: rgba(185, 215, 255, 0.76);
+      font-size: 10px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .approved-budget-column-note {
+      flex: 0 0 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 8px;
+      color: rgba(185, 215, 255, 0.72);
+      font-size: 9.5px;
+      background: rgba(2, 12, 32, 0.96);
+      border-top: 1px solid rgba(52, 223, 255, 0.10);
+      white-space: nowrap;
+    }
+
+    .approved-budget-empty {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      padding: 16px;
+    }
+
+    /* Remaining Budget per Project: compact ranked-bar table */
+    .remaining-budget-table-box {
+      height: 390px;
+      min-height: 390px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0;
+      background:
+        linear-gradient(180deg, rgba(2, 12, 32, 0.82), rgba(2, 12, 32, 0.62));
+      border: 1px solid rgba(52, 223, 255, 0.24);
+      border-radius: 9px;
+      box-shadow:
+        inset 0 0 20px rgba(52, 223, 255, 0.05),
+        0 0 18px rgba(0, 166, 255, 0.08);
+    }
+
+    .remaining-budget-grid {
+      display: grid;
+      grid-template-columns:
+        minmax(142px, 1.05fr)
+        minmax(235px, 2.15fr)
+        minmax(100px, 0.78fr)
+        minmax(82px, 0.58fr);
+      align-items: stretch;
+      min-width: 600px;
+    }
+
+    .remaining-budget-header {
+      flex: 0 0 auto;
+      min-height: 32px;
+      background: linear-gradient(180deg, rgba(5, 37, 77, 0.98), rgba(3, 24, 55, 0.98));
+      border-bottom: 1px solid rgba(52, 223, 255, 0.25);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+    }
+
+    .remaining-budget-header > div,
+    .remaining-budget-row > div,
+    .remaining-budget-axis > div {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+    }
+
+    .remaining-budget-header > div {
+      justify-content: center;
+      border-right: 1px solid rgba(52, 223, 255, 0.12);
+    }
+
+    .remaining-budget-header > div:last-child,
+    .remaining-budget-row > div:last-child {
+      border-right: 0;
+    }
+
+    .remaining-budget-header .remaining-budget-main-heading {
+      color: var(--cyan);
+    }
+
+    .remaining-budget-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(52, 223, 255, 0.70) rgba(2, 12, 32, 0.80);
+    }
+
+    .remaining-budget-body::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    .remaining-budget-body::-webkit-scrollbar-track {
+      background: rgba(2, 12, 32, 0.80);
+    }
+
+    .remaining-budget-body::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #0d86ff, #34dfff);
+      border-radius: 999px;
+    }
+
+    .remaining-budget-row {
+      min-height: 31px;
+      color: #f0f7ff;
+      border-bottom: 1px solid rgba(52, 223, 255, 0.16);
+      background: rgba(3, 18, 44, 0.76);
+      font-size: 11px;
+    }
+
+    .remaining-budget-row:nth-child(even) {
+      background: rgba(5, 28, 61, 0.76);
+    }
+
+    .remaining-budget-row:hover {
+      background: rgba(12, 57, 113, 0.62);
+    }
+
+    .remaining-budget-row > div {
+      border-right: 1px solid rgba(52, 223, 255, 0.12);
+    }
+
+    .remaining-budget-project {
+      gap: 8px;
+      justify-content: flex-start;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .remaining-budget-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex: 0 0 10px;
+      background: var(--row-color);
+      box-shadow: 0 0 8px color-mix(in srgb, var(--row-color) 65%, transparent);
+    }
+
+    .remaining-budget-project-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .remaining-budget-bar-cell {
+      position: relative;
+      overflow: hidden;
+      background-image:
+        repeating-linear-gradient(
+          to right,
+          transparent 0,
+          transparent calc(12.5% - 1px),
+          rgba(71, 145, 207, 0.18) calc(12.5% - 1px),
+          rgba(71, 145, 207, 0.18) 12.5%
+        );
+    }
+
+    .remaining-budget-bar-track {
+      width: 100%;
+      height: 13px;
+      display: flex;
+      align-items: center;
+    }
+
+    .remaining-budget-bar {
+      height: 11px;
+      min-width: 3px;
+      border-radius: 4px;
+      background: var(--row-color);
+      box-shadow: 0 0 7px color-mix(in srgb, var(--row-color) 55%, transparent);
+    }
+
+
+    .remaining-budget-hover-tooltip {
+      position: fixed;
+      z-index: 9999;
+      display: none;
+      min-width: 132px;
+      max-width: 240px;
+      padding: 8px 10px;
+      border-radius: 7px;
+      border: 1px solid rgba(52, 223, 255, 0.90);
+      background: rgba(2, 14, 35, 0.98);
+      color: #ffffff;
+      box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.46),
+        0 0 14px rgba(52, 223, 255, 0.20);
+      pointer-events: none;
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.25;
+    }
+
+    .remaining-budget-hover-tooltip-project {
+      display: block;
+      margin-bottom: 4px;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .remaining-budget-hover-tooltip-amount {
+      display: block;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .remaining-budget-bar-cell,
+    .remaining-budget-bar {
+      cursor: pointer;
+    }
+
+    .remaining-budget-amount {
+      justify-content: center;
+      color: var(--row-color);
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
+    .remaining-budget-percentage {
+      justify-content: center;
+    }
+
+    .remaining-budget-percent-badge {
+      min-width: 58px;
+      padding: 3px 7px;
+      border: 1px solid var(--row-color);
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--row-color) 30%, rgba(2, 12, 32, 0.90));
+      color: #ffffff;
+      font-weight: 400;
+      text-align: center;
+      line-height: 1;
+      box-shadow: inset 0 0 8px color-mix(in srgb, var(--row-color) 18%, transparent);
+    }
+
+    .remaining-budget-axis {
+      flex: 0 0 25px;
+      min-height: 25px;
+      color: #b9d7ff;
+      font-size: 9.5px;
+      border-top: 1px solid rgba(52, 223, 255, 0.14);
+      background: rgba(2, 12, 32, 0.94);
+    }
+
+    .remaining-budget-axis-project,
+    .remaining-budget-axis-amount,
+    .remaining-budget-axis-percent {
+      border-right: 1px solid rgba(52, 223, 255, 0.10);
+    }
+
+    .remaining-budget-axis-labels {
+      display: grid !important;
+      align-items: center !important;
+      padding: 0 7px !important;
+    }
+
+    .remaining-budget-axis-labels span {
+      text-align: center;
+      white-space: nowrap;
+      transform: translateX(-50%);
+    }
+
+    .remaining-budget-axis-labels span:first-child {
+      transform: none;
+      text-align: left;
+    }
+
+    .remaining-budget-axis-labels span:last-child {
+      transform: translateX(-100%);
+      text-align: right;
+    }
+
+    .remaining-budget-note {
+      flex: 0 0 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 8px;
+      color: rgba(185, 215, 255, 0.72);
+      font-size: 9.5px;
+      font-style: italic;
+      background: rgba(2, 12, 32, 0.96);
+      border-top: 1px solid rgba(52, 223, 255, 0.10);
+      white-space: nowrap;
+    }
+
+    .remaining-budget-empty {
+      height: 100%;
+      min-height: 155px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      padding: 16px;
+    }
+
     .table-panel {
       margin-top: 8px;
     }
@@ -1317,8 +1874,34 @@
           <h2>Approved Budget per Project</h2>
           <span class="tag">Alloted budget per quarter</span>
         </div>
-        <div class="chart-box">
-          <canvas id="dailyExpenseChart"></canvas>
+        <div id="approvedBudgetColumnBox" class="approved-budget-column-box">
+          <div class="approved-budget-column-content">
+            <div id="approvedBudgetHighlight" class="approved-budget-highlight"></div>
+
+            <div class="approved-budget-column-chart-panel">
+              <div class="approved-budget-column-chart-header">
+                <div class="approved-budget-column-chart-title">
+                  Other Approved Budget by Project
+                </div>
+                <div class="approved-budget-column-legend">
+                  <span class="approved-budget-column-legend-mark"></span>
+                  Approved Budget
+                </div>
+              </div>
+
+              <div id="approvedBudgetColumnScroll" class="approved-budget-column-scroll">
+                <div id="approvedBudgetColumnCanvasWrap" class="approved-budget-column-canvas-wrap">
+                  <canvas id="dailyExpenseChart"></canvas>
+                </div>
+              </div>
+
+              <div id="approvedBudgetColumnStatus" class="approved-budget-column-status"></div>
+            </div>
+          </div>
+
+          <div class="approved-budget-column-note">
+            ⓘ Hover over a bar to view the project, approved budget amount, and % of total.
+          </div>
         </div>
       </div>
 
@@ -1328,8 +1911,20 @@
           <h2>Remaining Budget per Project</h2>
           <span class="tag">Available balance</span>
         </div>
-        <div id="remainingBudgetChartBox" class="chart-box">
-          <canvas id="remainingBudgetChart"></canvas>
+        <div id="remainingBudgetTableBox" class="remaining-budget-table-box">
+          <div class="remaining-budget-grid remaining-budget-header">
+            <div>Project</div>
+            <div class="remaining-budget-main-heading">Remaining Budget</div>
+            <div>Amount</div>
+            <div>% of Total</div>
+          </div>
+
+          <div id="remainingBudgetTableBody" class="remaining-budget-body"></div>
+          <div id="remainingBudgetAxis" class="remaining-budget-grid remaining-budget-axis"></div>
+
+          <div class="remaining-budget-note">
+            ⓘ % of total may not sum up to 100% due to rounding.
+          </div>
         </div>
       </div>
     </section>
@@ -1476,12 +2071,12 @@
           if (value === null || value === undefined || isNaN(value)) return;
 
           ctx.save();
-          ctx.font = '800 12px Segoe UI, Arial, sans-serif';
+          ctx.font = '700 11px Segoe UI, Arial, sans-serif';
           ctx.fillStyle = '#ffffff';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-          ctx.shadowBlur = 8;
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+          ctx.shadowBlur = 2;
           ctx.fillText(formatPesoShort(value), point.x, point.y - 9);
           ctx.restore();
         });
@@ -2400,7 +2995,7 @@
 
       renderAllocationTable(data.allocationRows || []);
       renderApprovedBudgetChart(data.projectSummary || []);
-      renderRemainingBudgetChart(data.projectSummary || []);
+      renderRemainingBudgetTable(data.projectSummary || []);
       renderExpenseRecordTable(allExpenseRows);
 
       fitDashboardToScreen();
@@ -3035,99 +3630,207 @@
       return order.map(key => mergedMap[key]);
     }
 
+    function getApprovedBudgetAxisLabel(project) {
+      const text = String(project || '').trim();
+
+      if (text.length <= 14) return text;
+
+      const words = text.split(/\s+/);
+      const lines = [];
+      let currentLine = '';
+
+      words.forEach(word => {
+        const proposed = currentLine ? currentLine + ' ' + word : word;
+
+        if (proposed.length <= 16 || !currentLine) {
+          currentLine = proposed;
+        } else {
+          lines.push(currentLine);
+          currentLine = word;
+        }
+      });
+
+      if (currentLine) lines.push(currentLine);
+
+      if (lines.length <= 2) return lines;
+
+      return [lines[0], lines.slice(1).join(' ').substring(0, 18) + '…'];
+    }
+
     function renderApprovedBudgetChart(rows) {
-      const chartRows = getApprovedBudgetChartRows(rows);
-
-      const labels = chartRows.map(r => r.project);
-      const values = chartRows.map(r => Number(r.approvedBudget || 0));
-
+      const highlight = document.getElementById('approvedBudgetHighlight');
+      const scrollBox = document.getElementById('approvedBudgetColumnScroll');
+      const canvasWrap = document.getElementById('approvedBudgetColumnCanvasWrap');
+      const status = document.getElementById('approvedBudgetColumnStatus');
       const canvas = document.getElementById('dailyExpenseChart');
+
+      if (!highlight || !scrollBox || !canvasWrap || !status || !canvas) return;
+
+      if (dailyExpenseChart) {
+        dailyExpenseChart.destroy();
+        dailyExpenseChart = null;
+      }
+
+      const chartRows = getApprovedBudgetChartRows(rows)
+        .map(row => ({
+          project: row.project,
+          approvedBudget: Number(row.approvedBudget || 0)
+        }))
+        .filter(row => row.project && row.approvedBudget >= 0)
+        .sort((a, b) => b.approvedBudget - a.approvedBudget);
+
+      highlight.innerHTML = '';
+      status.textContent = '';
+
+      if (!chartRows.length) {
+        highlight.innerHTML = '<div class="approved-budget-empty">No approved budget data found.</div>';
+        canvasWrap.innerHTML = '<div class="approved-budget-empty">No project allocation records found.</div>';
+        return;
+      }
+
+      const totalApprovedBudget = chartRows.reduce((sum, row) => {
+        return sum + Number(row.approvedBudget || 0);
+      }, 0);
+
+      const highest = chartRows[0];
+      const highestShare = totalApprovedBudget > 0
+        ? highest.approvedBudget / totalApprovedBudget
+        : 0;
+      const highestShareDegrees = Math.max(0, Math.min(360, highestShare * 360));
+
+      highlight.innerHTML = `
+        <div class="approved-budget-highlight-label">Highest Allocation</div>
+
+        <div class="approved-budget-ring" style="--approved-share-deg:${highestShareDegrees}deg;">
+          <div class="approved-budget-ring-center">
+            <div class="approved-budget-ring-percent">${formatPercent(highestShare)}</div>
+            <div class="approved-budget-ring-caption">of total budget</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="approved-budget-highlight-project" title="${escapeHtml(highest.project)}">
+            ${escapeHtml(highest.project)}
+          </div>
+          <div class="approved-budget-highlight-caption">Approved Budget</div>
+          <div class="approved-budget-highlight-amount">${formatPesoShort(highest.approvedBudget)}</div>
+        </div>
+
+        <div class="approved-budget-total">
+          Total Approved Budget
+          <strong>${formatPesoShort(totalApprovedBudget)}</strong>
+        </div>
+      `;
+
+      const otherChartRows = chartRows.slice(1);
+
+      if (!otherChartRows.length) {
+        canvasWrap.innerHTML =
+          '<div class="approved-budget-empty">No other approved budget projects found.</div>';
+        status.textContent = 'Highest allocation is shown in the summary card.';
+        return;
+      }
+
+      const individualPercentages = otherChartRows.map(row => {
+        return totalApprovedBudget > 0
+          ? (Number(row.approvedBudget || 0) / totalApprovedBudget) * 100
+          : 0;
+      });
+
+      status.textContent =
+        'Showing ' + otherChartRows.length + ' other project' +
+        (otherChartRows.length === 1 ? '' : 's') +
+        ' • scroll horizontally when needed';
+
+      const minimumChartWidth = Math.max(
+        Math.max(560, scrollBox.clientWidth - 4),
+        otherChartRows.length * 64
+      );
+
+      canvasWrap.style.width = minimumChartWidth + 'px';
+
+      const labels = otherChartRows.map(row => getApprovedBudgetAxisLabel(row.project));
+      const approvedValues = otherChartRows.map(row => Number(row.approvedBudget || 0));
+
+      // Start at the second palette color so each remaining project keeps
+      // the same color it had before the highest-allocation bar was removed.
+      const barColors = otherChartRows.map((row, index) => getUniqueChartColor(index + 1));
+
+      const maxApprovedBudget = approvedValues.length
+        ? Math.max.apply(null, approvedValues)
+        : 0;
+
       const ctx = canvas.getContext('2d');
 
-      if (dailyExpenseChart) dailyExpenseChart.destroy();
-
-      const gradient = ctx.createLinearGradient(0, 0, 0, 260);
-      gradient.addColorStop(0, 'rgba(52, 223, 255, 0.36)');
-      gradient.addColorStop(0.55, 'rgba(0, 166, 255, 0.14)');
-      gradient.addColorStop(1, 'rgba(0, 166, 255, 0.00)');
-
       dailyExpenseChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: labels,
           datasets: [{
-            label: 'Approved Budget per Project',
-            data: values,
-            borderColor: '#34dfff',
-            backgroundColor: gradient,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#34dfff',
-            pointHoverBackgroundColor: '#34dfff',
-            pointHoverBorderColor: '#ffffff',
-            borderWidth: 3,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            pointBorderWidth: 3,
-            tension: 0,
-            fill: true
+            label: 'Approved Budget',
+            data: approvedValues,
+            backgroundColor: barColors,
+            borderColor: barColors,
+            borderWidth: 1,
+            borderRadius: 5,
+            maxBarThickness: 34,
+            categoryPercentage: 0.74,
+            barPercentage: 0.82
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: {
+            mode: 'nearest',
+            intersect: true
+          },
           layout: {
             padding: {
-              top: 26,
+              top: 25,
               right: 8,
-              bottom: 12,
-              left: 8
+              bottom: 0,
+              left: 4
             }
           },
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: false
+            },
             tooltip: {
-              backgroundColor: '#03102a',
+              backgroundColor: 'rgba(2, 14, 35, 0.98)',
               titleColor: '#ffffff',
               bodyColor: '#ffffff',
-              borderColor: '#38d9ff',
+              borderColor: '#34dfff',
               borderWidth: 1,
-              displayColors: false,
+              displayColors: true,
+              padding: 10,
               callbacks: {
                 title: function(context) {
-                  return context[0] && context[0].label ? context[0].label : '';
+                  const dataIndex = context[0] ? context[0].dataIndex : -1;
+                  return dataIndex >= 0 && otherChartRows[dataIndex]
+                    ? otherChartRows[dataIndex].project
+                    : '';
                 },
                 label: function(context) {
-                  return formatPeso(context.parsed.y);
+                  const dataIndex = context.dataIndex;
+                  const row = otherChartRows[dataIndex];
+
+                  if (!row) return '';
+
+                  return [
+                    'Approved Budget: ' + formatPeso(row.approvedBudget),
+                    '% of Total: ' + Number(individualPercentages[dataIndex] || 0).toFixed(2) + '%'
+                  ];
                 }
               }
             }
           },
           scales: {
-            y: {
-              beginAtZero: true,
-              suggestedMax: Math.max(25000000, (values.length ? Math.max.apply(null, values) : 0) * 1.25),
-              border: {
-                display: false
-              },
-              grid: {
-                color: 'rgba(52, 223, 255, 0.16)',
-                drawTicks: false
-              },
-              ticks: {
-                color: '#b9d7ff',
-                padding: 8,
-                font: {
-                  size: 12,
-                  weight: '700'
-                },
-                callback: value => formatPesoShort(value)
-              }
-            },
             x: {
-              type: 'category',
               offset: true,
               border: {
-                display: false
+                color: 'rgba(52, 223, 255, 0.24)'
               },
               grid: {
                 display: false
@@ -3135,13 +3838,42 @@
               ticks: {
                 autoSkip: false,
                 color: '#d5e9ff',
-                padding: 12,
+                padding: 6,
+                maxRotation: 0,
+                minRotation: 0,
                 font: {
-                  size: 13,
-                  weight: '800'
+                  size: chartRows.length > 12 ? 9 : 10,
+                  weight: '700'
+                }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMax: maxApprovedBudget > 0 ? maxApprovedBudget * 1.22 : 1,
+              border: {
+                display: false
+              },
+              grid: {
+                color: 'rgba(52, 223, 255, 0.13)',
+                drawTicks: false
+              },
+              ticks: {
+                color: '#b9d7ff',
+                padding: 6,
+                font: {
+                  size: 10,
+                  weight: '600'
                 },
-                maxRotation: 28,
-                minRotation: 28
+                callback: value => formatPesoShort(value)
+              },
+              title: {
+                display: true,
+                text: 'Approved Budget',
+                color: '#b9d7ff',
+                font: {
+                  size: 10,
+                  weight: '700'
+                }
               }
             }
           }
@@ -3175,102 +3907,241 @@
       return order.map(key => mergedMap[key]);
     }
 
-    function renderRemainingBudgetChart(rows) {
-      const chartRows = getRemainingBudgetChartRows(rows);
-      const labels = chartRows.map(r => r.project);
-      const values = chartRows.map(r => Number(r.remainingBudget || 0));
+    function getNiceBudgetTickStep(rawStep) {
+      if (!isFinite(rawStep) || rawStep <= 0) return 1;
 
-      const canvas = document.getElementById('remainingBudgetChart');
-      const chartBox = document.getElementById('remainingBudgetChartBox');
-      const labelCount = Math.max(labels.length, 1);
-      const labelFontSize = labelCount > 16 ? 8 : (labelCount > 12 ? 9 : 10);
-      const barThickness = labelCount > 16 ? 8 : (labelCount > 12 ? 9 : 11);
+      const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+      const normalized = rawStep / magnitude;
+      let niceNormalized;
 
-      // Keep the original compact chart height while forcing every project label to appear.
-      if (chartBox) {
-        chartBox.style.height = '255px';
+      if (normalized <= 1) {
+        niceNormalized = 1;
+      } else if (normalized <= 2) {
+        niceNormalized = 2;
+      } else if (normalized <= 2.5) {
+        niceNormalized = 2.5;
+      } else if (normalized <= 5) {
+        niceNormalized = 5;
+      } else {
+        niceNormalized = 10;
       }
 
-      const ctx = canvas.getContext('2d');
+      return niceNormalized * magnitude;
+    }
 
-      if (remainingBudgetChart) remainingBudgetChart.destroy();
+    function getRemainingBudgetAxis(values) {
+      const maxValue = values.length ? Math.max.apply(null, values) : 0;
 
-      remainingBudgetChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Remaining Budget',
-            data: values,
-            backgroundColor: labels.map((_, i) => getUniqueChartColor(i)),
-            borderColor: labels.map((_, i) => getUniqueChartColor(i)),
-            borderWidth: 1,
-            borderRadius: 6,
-            barThickness: barThickness,
-            maxBarThickness: 11,
-            categoryPercentage: 1,
-            barPercentage: 0.82
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: {
-            padding: {
-              top: 2,
-              right: 8,
-              bottom: 0,
-              left: 2
-            }
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#03102a',
-              titleColor: '#ffffff',
-              bodyColor: '#ffffff',
-              borderColor: '#38d9ff',
-              borderWidth: 1,
-              callbacks: {
-                label: context => formatPeso(context.raw)
-              }
-            },
-            approvedBudgetValueLabelPlugin: false
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(52, 223, 255, 0.12)'
-              },
-              ticks: {
-                color: '#b9d7ff',
-                font: {
-                  size: 10,
-                  weight: '600'
-                },
-                callback: value => formatPesoShort(value)
-              }
-            },
-            y: {
-              offset: true,
-              grid: {
-                display: false
-              },
-              ticks: {
-                autoSkip: false,
-                padding: 4,
-                color: '#d5e9ff',
-                font: {
-                  size: labelFontSize,
-                  weight: '700'
-                }
-              }
-            }
-          }
+      if (maxValue <= 0) {
+        return {
+          max: 1,
+          ticks: [0, 1]
+        };
+      }
+
+      const targetIntervals = 7;
+      const step = getNiceBudgetTickStep(maxValue / targetIntervals);
+      let axisMax = Math.ceil(maxValue / step) * step;
+
+      // Leave one interval after the longest bar, matching the approved preview.
+      if (Math.abs(axisMax - maxValue) < 0.01) {
+        axisMax += step;
+      }
+
+      const ticks = [];
+
+      for (let value = 0; value <= axisMax + step / 2; value += step) {
+        ticks.push(value);
+      }
+
+      return {
+        max: axisMax,
+        ticks: ticks
+      };
+    }
+
+
+    let remainingBudgetHoverTooltip = null;
+
+    function getRemainingBudgetHoverTooltip() {
+      if (remainingBudgetHoverTooltip && document.body.contains(remainingBudgetHoverTooltip)) {
+        return remainingBudgetHoverTooltip;
+      }
+
+      remainingBudgetHoverTooltip = document.createElement('div');
+      remainingBudgetHoverTooltip.className = 'remaining-budget-hover-tooltip';
+      remainingBudgetHoverTooltip.setAttribute('role', 'tooltip');
+      document.body.appendChild(remainingBudgetHoverTooltip);
+
+      return remainingBudgetHoverTooltip;
+    }
+
+    function positionRemainingBudgetHoverTooltip(event) {
+      const tooltip = getRemainingBudgetHoverTooltip();
+      const gap = 14;
+      const tooltipRect = tooltip.getBoundingClientRect();
+
+      let left = event.clientX + gap;
+      let top = event.clientY + gap;
+
+      if (left + tooltipRect.width > window.innerWidth - 8) {
+        left = event.clientX - tooltipRect.width - gap;
+      }
+
+      if (top + tooltipRect.height > window.innerHeight - 8) {
+        top = event.clientY - tooltipRect.height - gap;
+      }
+
+      tooltip.style.left = Math.max(8, left) + 'px';
+      tooltip.style.top = Math.max(8, top) + 'px';
+    }
+
+    function showRemainingBudgetHoverTooltip(event, project, amount) {
+      const tooltip = getRemainingBudgetHoverTooltip();
+
+      tooltip.innerHTML =
+        '<span class="remaining-budget-hover-tooltip-project">' +
+        escapeHtml(project) +
+        '</span>' +
+        '<span class="remaining-budget-hover-tooltip-amount">' +
+        escapeHtml(formatPeso(amount)) +
+        '</span>';
+
+      tooltip.style.display = 'block';
+      positionRemainingBudgetHoverTooltip(event);
+    }
+
+    function hideRemainingBudgetHoverTooltip() {
+      if (remainingBudgetHoverTooltip) {
+        remainingBudgetHoverTooltip.style.display = 'none';
+      }
+    }
+
+    function renderRemainingBudgetTable(rows) {
+      const body = document.getElementById('remainingBudgetTableBody');
+      const axis = document.getElementById('remainingBudgetAxis');
+
+      if (!body || !axis) return;
+
+      const chartRows = getRemainingBudgetChartRows(rows)
+        .map(row => ({
+          project: row.project,
+          remainingBudget: Number(row.remainingBudget || 0)
+        }))
+        .sort((a, b) => b.remainingBudget - a.remainingBudget);
+
+      body.innerHTML = '';
+      axis.innerHTML = '';
+
+      if (!chartRows.length) {
+        body.innerHTML = '<div class="remaining-budget-empty">No remaining-budget data found.</div>';
+        axis.style.display = 'none';
+        return;
+      }
+
+      axis.style.display = 'grid';
+
+      const totalRemainingBudget = chartRows.reduce((sum, row) => {
+        return sum + Number(row.remainingBudget || 0);
+      }, 0);
+
+      const values = chartRows.map(row => row.remainingBudget);
+      const axisInfo = getRemainingBudgetAxis(values);
+
+      chartRows.forEach((row, index) => {
+        const color = getUniqueChartColor(index);
+        const barWidth = axisInfo.max > 0
+          ? Math.max(0, Math.min(100, row.remainingBudget / axisInfo.max * 100))
+          : 0;
+        const percentage = totalRemainingBudget > 0
+          ? row.remainingBudget / totalRemainingBudget
+          : 0;
+
+        const rowElement = document.createElement('div');
+        rowElement.className = 'remaining-budget-grid remaining-budget-row';
+        rowElement.style.setProperty('--row-color', color);
+
+        rowElement.innerHTML = `
+          <div class="remaining-budget-project" title="${escapeHtml(row.project)}">
+            <span class="remaining-budget-dot"></span>
+            <span class="remaining-budget-project-name">${escapeHtml(row.project)}</span>
+          </div>
+          <div class="remaining-budget-bar-cell">
+            <div class="remaining-budget-bar-track">
+              <div class="remaining-budget-bar" style="width:${barWidth.toFixed(4)}%;"></div>
+            </div>
+          </div>
+          <div class="remaining-budget-amount">${formatPesoShort(row.remainingBudget)}</div>
+          <div class="remaining-budget-percentage">
+            <span class="remaining-budget-percent-badge">${formatPercent(percentage)}</span>
+          </div>
+        `;
+
+        const barCell = rowElement.querySelector('.remaining-budget-bar-cell');
+
+        if (barCell) {
+          barCell.addEventListener('mouseenter', function(event) {
+            showRemainingBudgetHoverTooltip(
+              event,
+              row.project,
+              row.remainingBudget
+            );
+          });
+
+          barCell.addEventListener('mousemove', function(event) {
+            positionRemainingBudgetHoverTooltip(event);
+          });
+
+          barCell.addEventListener('mouseleave', function() {
+            hideRemainingBudgetHoverTooltip();
+          });
         }
+
+        body.appendChild(rowElement);
       });
+
+      const projectSpacer = document.createElement('div');
+      projectSpacer.className = 'remaining-budget-axis-project';
+
+      const axisLabels = document.createElement('div');
+      axisLabels.className = 'remaining-budget-axis-labels';
+      axisLabels.style.gridTemplateColumns = 'repeat(' + axisInfo.ticks.length + ', minmax(0, 1fr))';
+      axisLabels.innerHTML = axisInfo.ticks.map(value => {
+        return '<span>' + formatPesoAxis(value) + '</span>';
+      }).join('');
+
+      const amountSpacer = document.createElement('div');
+      amountSpacer.className = 'remaining-budget-axis-amount';
+
+      const percentageSpacer = document.createElement('div');
+      percentageSpacer.className = 'remaining-budget-axis-percent';
+
+      axis.appendChild(projectSpacer);
+      axis.appendChild(axisLabels);
+      axis.appendChild(amountSpacer);
+      axis.appendChild(percentageSpacer);
+    }
+
+    function formatPesoAxis(value) {
+      value = Number(value || 0);
+
+      if (Math.abs(value) >= 1000000000) {
+        return '₱' + trimTrailingZeros(value / 1000000000) + 'B';
+      }
+
+      if (Math.abs(value) >= 1000000) {
+        return '₱' + trimTrailingZeros(value / 1000000) + 'M';
+      }
+
+      if (Math.abs(value) >= 1000) {
+        return '₱' + trimTrailingZeros(value / 1000) + 'K';
+      }
+
+      return '₱' + trimTrailingZeros(value);
+    }
+
+    function trimTrailingZeros(value) {
+      return Number(value || 0).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
     }
 
     function renderExpenseRecordTable(rows) {
