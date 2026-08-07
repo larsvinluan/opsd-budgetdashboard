@@ -3088,11 +3088,11 @@
 
       document.getElementById('allocationTotalFunding').textContent = data.selectedFundingSource || 'All';
       document.getElementById('allocationTotalQuarter').textContent = data.selectedQuarter === 'All' ? 'All Quarters' : data.selectedQuarter;
-      document.getElementById('allocationTotalBudget').textContent = formatPesoShort(data.approvedBudget);
-      document.getElementById('allocationTotalRbaApproved').textContent = formatPesoShort(data.totalRbaApproved);
-      document.getElementById('allocationTotalRbaBalance').textContent = formatPesoShort(data.totalRbaBalance);
-      document.getElementById('allocationTotalActualUsed').textContent = formatPesoShort(data.totalOrDv);
-      document.getElementById('allocationTotalActualBalance').textContent = formatPesoShort(data.totalActualBalance);
+      document.getElementById('allocationTotalBudget').textContent = formatPeso(data.approvedBudget);
+      document.getElementById('allocationTotalRbaApproved').textContent = formatPeso(data.totalRbaApproved);
+      document.getElementById('allocationTotalRbaBalance').textContent = formatPeso(data.totalRbaBalance);
+      document.getElementById('allocationTotalActualUsed').textContent = formatPeso(data.totalOrDv);
+      document.getElementById('allocationTotalActualBalance').textContent = formatPeso(data.totalActualBalance);
       document.getElementById('allocationTotalUtilization').textContent = formatPercent(data.actualUtilizationRate);
 
       allExpenseRows = data.expenseRows || [];
@@ -3455,11 +3455,11 @@
           <td>${renderProjectProgramCell(row.project)}</td>
           <td>${escapeHtml(row.fundingSource || 'All')}</td>
           <td>${escapeHtml(row.quarter)}</td>
-          <td>${formatPesoShort(row.allocation)}</td>
-          <td class="td-rba-group">${formatPesoShort(row.totalRbaApproved)}</td>
-          <td class="td-rba-group">${formatPesoShort(row.rbaBalance)}</td>
-          <td class="td-actual-group">${formatPesoShort(row.totalOrDv)}</td>
-          <td class="td-actual-group">${formatPesoShort(row.actualBalance)}</td>
+          <td>${formatPeso(row.allocation)}</td>
+          <td class="td-rba-group">${formatPeso(row.totalRbaApproved)}</td>
+          <td class="td-rba-group">${formatPeso(row.rbaBalance)}</td>
+          <td class="td-actual-group">${formatPeso(row.totalOrDv)}</td>
+          <td class="td-actual-group">${formatPeso(row.actualBalance)}</td>
           <td>${formatPercent(row.utilization)}</td>
           <td><span class="${utilizationStatusClass}">${escapeHtml(utilizationStatus)}</span></td>
           <td><span class="${statusClass}">${escapeHtml(row.allocationStatus)}</span></td>
@@ -3921,7 +3921,10 @@
       rows.forEach(row => {
         const originalProject = String(row.project || '').trim();
         const normalizedProject = originalProject.toUpperCase();
-        const projectKey = normalizedProject === 'PSG IMPLEMENTATION AUDIT'
+        const projectKey = (
+          normalizedProject === 'PSG IA' ||
+          normalizedProject === 'PSG IMPLEMENTATION AUDIT'
+        )
           ? originalProject
           : (normalizedProject.includes('PSG') ? 'PSG' : originalProject);
 
@@ -4197,7 +4200,10 @@
       rows.forEach(row => {
         const originalProject = String(row.project || '').trim();
         const normalizedProject = originalProject.toUpperCase();
-        const projectKey = normalizedProject === 'PSG IMPLEMENTATION AUDIT'
+        const projectKey = (
+          normalizedProject === 'PSG IA' ||
+          normalizedProject === 'PSG IMPLEMENTATION AUDIT'
+        )
           ? originalProject
           : (normalizedProject.includes('PSG') ? 'PSG' : originalProject);
 
