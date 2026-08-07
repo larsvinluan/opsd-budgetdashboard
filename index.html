@@ -1730,6 +1730,150 @@
         flex-direction: column;
       }
     }
+
+
+    /* ============================================================
+       APPROVED UPDATE: Project Allocation per Quarter header only
+       Grouped executive header based on the approved reference.
+       Table body, data, calculations, actions, and other dashboard
+       sections are intentionally unchanged.
+       ============================================================ */
+    .allocation-table-scroll .allocation-executive-head th {
+      color: #ffffff !important;
+      text-align: center;
+      vertical-align: middle;
+      font-family: "Segoe UI", Arial, sans-serif;
+      border-right: 1px solid rgba(117, 211, 255, 0.78) !important;
+      border-bottom: 1px solid rgba(91, 211, 255, 0.92) !important;
+      box-shadow:
+        inset -1px 0 0 rgba(255,255,255,0.08),
+        inset 0 -1px 0 rgba(255,255,255,0.06),
+        0 3px 10px rgba(0, 105, 235, 0.20);
+    }
+
+    .allocation-table-scroll .allocation-group-row th {
+      top: 0;
+      z-index: 34;
+      height: 54px;
+      padding: 8px 10px;
+      background:
+        linear-gradient(180deg, rgba(4, 27, 65, 0.99) 0%, rgba(3, 17, 43, 0.99) 100%) !important;
+      font-size: clamp(12px, 0.86vw, 15px) !important;
+      font-weight: 900 !important;
+      letter-spacing: 0.12px !important;
+      text-transform: uppercase !important;
+      white-space: nowrap;
+    }
+
+    .allocation-table-scroll .allocation-column-row th {
+      top: var(--allocation-header-row-one-height);
+      z-index: 33;
+      height: 106px;
+      padding: 10px 7px 11px;
+      background:
+        linear-gradient(180deg, #096fdc 0%, #075cc7 53%, #074eaf 100%) !important;
+      font-size: clamp(10px, 0.72vw, 12.5px) !important;
+      font-weight: 900 !important;
+      line-height: 1.22;
+      letter-spacing: 0 !important;
+      text-transform: none !important;
+      white-space: normal;
+    }
+
+    .allocation-group-content {
+      width: 100%;
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    /* Approved Option B: colored premium executive icons.
+       Icon treatment only — table structure, data, calculations and actions are unchanged. */
+    .allocation-group-icon,
+    .allocation-column-icon {
+      display: block;
+      flex: 0 0 auto;
+      overflow: visible;
+      shape-rendering: geometricPrecision;
+      filter:
+        drop-shadow(0 3px 2px rgba(0, 0, 0, 0.38))
+        drop-shadow(0 0 5px rgba(77, 196, 255, 0.24));
+    }
+
+    .allocation-group-icon {
+      width: 29px;
+      height: 29px;
+    }
+
+    .allocation-column-head {
+      min-height: 82px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .allocation-column-head > span {
+      display: block;
+      width: 100%;
+    }
+
+    .allocation-column-icon {
+      width: 34px;
+      height: 34px;
+    }
+
+    .allocation-percent-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .allocation-table-scroll .allocation-group-row th:first-child {
+      border-top-left-radius: 7px;
+    }
+
+    .allocation-table-scroll .allocation-group-row th:last-child {
+      border-top-right-radius: 7px;
+    }
+
+    @media (max-width: 700px) {
+      .allocation-table-scroll .allocation-group-row th {
+        height: 46px;
+        padding: 6px 6px;
+        font-size: 10px !important;
+      }
+
+      .allocation-group-content {
+        gap: 5px;
+      }
+
+      .allocation-group-icon {
+        width: 23px;
+        height: 23px;
+      }
+
+      .allocation-table-scroll .allocation-column-row th {
+        height: 88px;
+        padding: 7px 5px;
+        font-size: 9px !important;
+      }
+
+      .allocation-column-head {
+        min-height: 68px;
+        gap: 6px;
+      }
+
+      .allocation-column-icon,
+      .allocation-percent-icon {
+        width: 28px;
+        height: 28px;
+      }
+    }
+
   </style>
 </head>
 
@@ -1916,25 +2060,300 @@
       </div>
 
       <div id="allocationTableScroll" class="allocation-table-scroll">
+
+      <!-- Approved Option B: premium colored SVG icon definitions for this table header only. -->
+      <svg
+        class="allocation-premium-icon-defs"
+        aria-hidden="true"
+        focusable="false"
+        width="0"
+        height="0"
+        style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;"
+      >
+        <defs>
+          <linearGradient id="allocBlue" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#87e7ff"/>
+            <stop offset="42%" stop-color="#2d9cff"/>
+            <stop offset="100%" stop-color="#1251d5"/>
+          </linearGradient>
+          <linearGradient id="allocBlueDeep" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#56c8ff"/>
+            <stop offset="100%" stop-color="#0b48b7"/>
+          </linearGradient>
+          <linearGradient id="allocGreen" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#9bff72"/>
+            <stop offset="45%" stop-color="#42dc58"/>
+            <stop offset="100%" stop-color="#0a962f"/>
+          </linearGradient>
+          <linearGradient id="allocPurple" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#d7b4ff"/>
+            <stop offset="48%" stop-color="#8d64ff"/>
+            <stop offset="100%" stop-color="#5b34cf"/>
+          </linearGradient>
+          <linearGradient id="allocGold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffe682"/>
+            <stop offset="48%" stop-color="#ffbd38"/>
+            <stop offset="100%" stop-color="#e7860c"/>
+          </linearGradient>
+          <linearGradient id="allocSilver" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="45%" stop-color="#dff5ff"/>
+            <stop offset="100%" stop-color="#91badc"/>
+          </linearGradient>
+          <filter id="allocIconShadow" x="-40%" y="-40%" width="180%" height="180%">
+            <feDropShadow dx="0" dy="2" stdDeviation="1.4" flood-color="#001737" flood-opacity="0.65"/>
+            <feDropShadow dx="0" dy="0" stdDeviation="1.1" flood-color="#65d8ff" flood-opacity="0.28"/>
+          </filter>
+
+          <symbol id="allocIconProject" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <ellipse cx="24" cy="42" rx="18" ry="2.6" fill="#061a38" opacity=".45"/>
+              <rect x="9" y="18" width="12" height="22" rx="2.2" fill="url(#allocBlueDeep)" stroke="#bdeeff" stroke-width="1.2"/>
+              <rect x="19" y="8" width="18" height="32" rx="2.8" fill="url(#allocBlue)" stroke="#d8f5ff" stroke-width="1.25"/>
+              <rect x="36" y="23" width="7" height="17" rx="1.8" fill="#1b72dd" stroke="#a9e6ff" stroke-width="1"/>
+              <g fill="#eafaff">
+                <rect x="13" y="22" width="3" height="3" rx=".5"/><rect x="13" y="28" width="3" height="3" rx=".5"/><rect x="13" y="34" width="3" height="3" rx=".5"/>
+                <rect x="23" y="13" width="3.2" height="3.2" rx=".5"/><rect x="30" y="13" width="3.2" height="3.2" rx=".5"/>
+                <rect x="23" y="20" width="3.2" height="3.2" rx=".5"/><rect x="30" y="20" width="3.2" height="3.2" rx=".5"/>
+                <rect x="23" y="27" width="3.2" height="3.2" rx=".5"/><rect x="30" y="27" width="3.2" height="3.2" rx=".5"/>
+              </g>
+              <rect x="26.5" y="34" width="5.5" height="6" rx="1" fill="#083d99"/>
+              <path d="M6 40h38" stroke="#49e06c" stroke-width="3" stroke-linecap="round"/>
+              <path d="M21 9h14" stroke="#fff" stroke-opacity=".62" stroke-width="1.3" stroke-linecap="round"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconFunding" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <ellipse cx="24" cy="39" rx="15" ry="5.2" fill="#0b922e" stroke="#9aff86" stroke-width="1.1"/>
+              <path d="M9 31v8c0 2.9 6.7 5.2 15 5.2S39 41.9 39 39v-8" fill="url(#allocGreen)" stroke="#b7ffa5" stroke-width="1.1"/>
+              <ellipse cx="24" cy="31" rx="15" ry="5.2" fill="#65ef64" stroke="#c8ffb8" stroke-width="1.1"/>
+              <path d="M9 24v7c0 2.9 6.7 5.2 15 5.2S39 33.9 39 31v-7" fill="#2dcc4b" stroke="#b7ffa5" stroke-width="1.05"/>
+              <ellipse cx="24" cy="24" rx="15" ry="5.2" fill="#7df36c" stroke="#d0ffc2" stroke-width="1.05"/>
+              <path d="M11 17v7c0 2.7 5.8 4.8 13 4.8s13-2.1 13-4.8v-7" fill="#26bd44" stroke="#b9ffa7" stroke-width="1"/>
+              <ellipse cx="24" cy="17" rx="13" ry="4.8" fill="#8cf579" stroke="#e0ffd8" stroke-width="1"/>
+              <path d="M14 18.3c3.8-2 15.5-2.8 20 .1" stroke="#fff" stroke-opacity=".42" stroke-width="1.2" fill="none"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconQuarter" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <rect x="8" y="11" width="32" height="30" rx="5" fill="url(#allocSilver)" stroke="#d8f6ff" stroke-width="1.2"/>
+              <path d="M8 18h32v-3a4 4 0 0 0-4-4H12a4 4 0 0 0-4 4z" fill="url(#allocBlue)" stroke="#bfeeff" stroke-width="1"/>
+              <path d="M15 7v8M33 7v8" stroke="#ecfbff" stroke-width="3" stroke-linecap="round"/>
+              <g fill="#2b83ea">
+                <rect x="14" y="23" width="5" height="4" rx="1"/><rect x="22" y="23" width="5" height="4" rx="1"/><rect x="30" y="23" width="5" height="4" rx="1"/>
+                <rect x="14" y="30" width="5" height="4" rx="1"/><rect x="22" y="30" width="5" height="4" rx="1"/><rect x="30" y="30" width="5" height="4" rx="1"/>
+              </g>
+              <path d="M11 20h26" stroke="#fff" stroke-opacity=".55"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconBudget" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <path d="M17 8c2.5 2.6 11.5 2.6 14 0l-2.6 7H19.6z" fill="#7fe9ff" stroke="#dffaff" stroke-width="1.1"/>
+              <path d="M15.5 16.5h17c6.2 6.4 8 12.5 5.8 19.1C36.4 41.1 31.6 43 24 43S11.6 41.1 9.7 35.6c-2.2-6.6-.4-12.7 5.8-19.1z" fill="url(#allocBlue)" stroke="#d8f6ff" stroke-width="1.25"/>
+              <path d="M15.5 18.5c6.2 2 10.8 2.1 17 0" stroke="#fff" stroke-opacity=".55" stroke-width="1.2" fill="none"/>
+              <circle cx="24" cy="30" r="8.2" fill="#0b62cf" stroke="#b7ecff" stroke-width="1"/>
+              <text x="24" y="34.2" text-anchor="middle" font-size="13" font-family="Segoe UI,Arial,sans-serif" font-weight="900" fill="#ffffff">₱</text>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconRbaApproved" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <path d="M16 30 13 43l10-5 5 6 3-14z" fill="#16a93e" stroke="#baffad" stroke-width="1"/>
+              <path d="M32 30l3 13-10-5-5 6-3-14z" fill="#37ce50" stroke="#caffbd" stroke-width="1"/>
+              <path d="m24 6 4 3 5-.3 1.7 4.7 4.2 2.6-1.7 4.7 1.7 4.7-4.2 2.6-1.7 4.7-5-.3-4 3-4-3-5 .3-1.7-4.7-4.2-2.6 1.7-4.7-1.7-4.7 4.2-2.6 1.7-4.7 5 .3z" fill="url(#allocGreen)" stroke="#d9ffd0" stroke-width="1.2"/>
+              <circle cx="24" cy="21" r="9.1" fill="#f5fff2" stroke="#84e978" stroke-width="1"/>
+              <path d="m19.5 21.2 3 3 6-7" fill="none" stroke="#159939" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18 11c5-3 11-1.8 14 2.2" stroke="#fff" stroke-opacity=".55" stroke-width="1.4" fill="none"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconRbaBalance" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <path d="M24 7v31M12 12h24M18 41h12" stroke="url(#allocBlue)" stroke-width="3.2" stroke-linecap="round"/>
+              <path d="M12 12 6 25h12z" fill="url(#allocSilver)" stroke="#bdeeff" stroke-width="1.2"/>
+              <path d="M36 12 30 25h12z" fill="url(#allocBlue)" stroke="#d5f4ff" stroke-width="1.2"/>
+              <path d="M4.5 26.5h15M28.5 26.5h15" stroke="#ebfbff" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="24" cy="8" r="3.2" fill="#8feaff" stroke="#f4fdff"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconDocument" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <path d="M12 6h17l8 8v28H12z" fill="url(#allocSilver)" stroke="#d5f4ff" stroke-width="1.3"/>
+              <path d="M29 6v9h9" fill="#72caff" stroke="#bdeeff" stroke-width="1.2"/>
+              <rect x="17" y="20" width="15" height="3" rx="1.5" fill="#2a82eb"/>
+              <rect x="17" y="27" width="15" height="3" rx="1.5" fill="#4ba4f8"/>
+              <rect x="17" y="34" width="11" height="3" rx="1.5" fill="#63b6ff"/>
+              <path d="M14 9h12" stroke="#fff" stroke-opacity=".6" stroke-width="1.2"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconWallet" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <path d="M11 13 33 7l2 9-22 6z" fill="#57df62" stroke="#c1ffb9" stroke-width="1"/>
+              <path d="M8 15h29a5 5 0 0 1 5 5v20H13a7 7 0 0 1-7-7V17a2 2 0 0 1 2-2z" fill="url(#allocPurple)" stroke="#e9d9ff" stroke-width="1.2"/>
+              <path d="M8 18h27" stroke="#fff" stroke-opacity=".38" stroke-width="1.2"/>
+              <path d="M31 24h12v10H31a5 5 0 0 1 0-10z" fill="#4b2ab4" stroke="#d9c5ff" stroke-width="1.1"/>
+              <circle cx="34" cy="29" r="1.8" fill="#e7dcff"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconPercent" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <circle cx="24" cy="24" r="18" fill="url(#allocBlue)" stroke="#c8f0ff" stroke-width="1.3"/>
+              <circle cx="24" cy="24" r="14.3" fill="#0751b6" opacity=".72"/>
+              <path d="M32 14 16 34" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round"/>
+              <circle cx="16" cy="16" r="4" fill="#ffffff"/>
+              <circle cx="32" cy="32" r="4" fill="#ffffff"/>
+              <path d="M11 10c7-5 18-4 24 2" stroke="#fff" stroke-opacity=".48" stroke-width="1.4" fill="none"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconUtilStatus" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <rect x="8" y="30" width="6" height="11" rx="1.5" fill="#58cf43"/>
+              <rect x="18" y="24" width="6" height="17" rx="1.5" fill="#49db4a"/>
+              <rect x="28" y="17" width="6" height="24" rx="1.5" fill="#35c936"/>
+              <rect x="38" y="11" width="4" height="30" rx="1.5" fill="#80f56a"/>
+              <path d="m8 25 10-9 8 5 14-14" fill="none" stroke="#98ff78" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M34 7h7v7" fill="none" stroke="#c9ffbb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6 42h37" stroke="#c0f6ff" stroke-width="1.6" stroke-linecap="round"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconAllocationStatus" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <rect x="11" y="9" width="28" height="34" rx="4" fill="url(#allocSilver)" stroke="#fff3c3" stroke-width="1.2"/>
+              <path d="M17 6h14a3 3 0 0 1 3 3v4H14V9a3 3 0 0 1 3-3z" fill="url(#allocGold)" stroke="#fff0ae" stroke-width="1.1"/>
+              <rect x="19" y="4" width="10" height="5" rx="2.2" fill="#ffd45b"/>
+              <circle cx="24" cy="27" r="9.4" fill="#e8ffe6" stroke="#6bdc64" stroke-width="1.1"/>
+              <path d="m19 27 3.2 3.2L29.5 22" fill="none" stroke="#16a33c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 16h20" stroke="#fff" stroke-opacity=".55" stroke-width="1"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconCatchUp" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <path d="M6 14h15l4 5h17v20a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4z" fill="url(#allocBlue)" stroke="#d8f5ff" stroke-width="1.2"/>
+              <path d="M6 20h36l-4 20H10z" fill="#1a69dd" stroke="#aee8ff" stroke-width="1.05"/>
+              <path d="M9 22h29" stroke="#fff" stroke-opacity=".58" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M10 15h10" stroke="#ddf8ff" stroke-width="1.3" stroke-linecap="round"/>
+            </g>
+          </symbol>
+
+          <symbol id="allocIconUtilizationGroup" viewBox="0 0 48 48">
+            <g filter="url(#allocIconShadow)">
+              <path d="M24 5a19 19 0 0 1 19 19H24z" fill="url(#allocGreen)" stroke="#d7ffd0" stroke-width="1.2"/>
+              <path d="M21 8v19h19A19 19 0 1 1 21 8z" fill="url(#allocBlue)" stroke="#d5f4ff" stroke-width="1.2"/>
+              <path d="M21 8c-6.4 1-11.8 5.2-14.5 10.8" stroke="#fff" stroke-opacity=".48" stroke-width="1.4" fill="none"/>
+            </g>
+          </symbol>
+        </defs>
+      </svg>
       <table>
-        <thead>
-          <tr>
-            <th rowspan="2">Project / Program</th>
-            <th rowspan="2">Funding Source</th>
-            <th rowspan="2">Quarter</th>
-            <th rowspan="2">Allocation</th>
-            <th colspan="2" class="th-rba-group">Utilization (RBA)</th>
-            <th colspan="2" class="th-actual-group">Utilization (Actual)</th>
-            <th rowspan="2">Utilization %</th>
-            <th rowspan="2">Utilization Status</th>
-            <th rowspan="2">Allocation Status</th>
-            <th rowspan="2">Catch Up Plan</th>
+        <thead class="allocation-executive-head">
+          <tr class="allocation-group-row">
+            <th colspan="3" class="allocation-group-head">
+              <span class="allocation-group-content">
+                <svg class="allocation-group-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconProject"></use></svg>
+                <span>Project Information</span>
+              </span>
+            </th>
+            <th colspan="1" class="allocation-group-head">
+              <span class="allocation-group-content">
+                <svg class="allocation-group-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconBudget"></use></svg>
+                <span>Budget</span>
+              </span>
+            </th>
+            <th colspan="5" class="allocation-group-head">
+              <span class="allocation-group-content">
+                <svg class="allocation-group-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconUtilizationGroup"></use></svg>
+                <span>Utilization</span>
+              </span>
+            </th>
+            <th colspan="3" class="allocation-group-head">
+              <span class="allocation-group-content">
+                <svg class="allocation-group-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconAllocationStatus"></use></svg>
+                <span>Status &amp; Action</span>
+              </span>
+            </th>
           </tr>
-          <tr>
-            <th class="th-rba-group">Total RBA Approved</th>
-            <th class="th-rba-group">Balance</th>
-            <th class="th-actual-group">Total OR/DV</th>
-            <th class="th-actual-group">Balance</th>
+          <tr class="allocation-column-row">
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconProject"></use></svg>
+                <span>Project /<br>Program</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconFunding"></use></svg>
+                <span>Funding<br>Source</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconQuarter"></use></svg>
+                <span>Quarter</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconBudget"></use></svg>
+                <span>Approved<br>Allocation</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconRbaApproved"></use></svg>
+                <span>RBA<br>Approved</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconRbaBalance"></use></svg>
+                <span>RBA<br>Balance</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconDocument"></use></svg>
+                <span>Actual<br>OR/DV</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconWallet"></use></svg>
+                <span>Actual<br>Balance</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon allocation-percent-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconPercent"></use></svg>
+                <span>Utilization<br>%</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconUtilStatus"></use></svg>
+                <span>Utilization<br>Status</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconAllocationStatus"></use></svg>
+                <span>Allocation<br>Status</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#allocIconCatchUp"></use></svg>
+                <span>Catch-Up Plan /<br>Action</span>
+              </span>
+            </th>
           </tr>
         </thead>
         <tbody id="allocationTable"></tbody>
