@@ -1388,6 +1388,97 @@
       font-weight: 800;
     }
 
+    /* Project / Program full-name popover (front-end display only) */
+    .project-meaning-trigger {
+      appearance: none;
+      -webkit-appearance: none;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-weight: inherit;
+      line-height: inherit;
+      text-align: inherit;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      border-bottom: 1px dotted rgba(56, 217, 255, 0.82);
+      text-underline-offset: 3px;
+    }
+
+    .project-meaning-trigger:hover,
+    .project-meaning-trigger:focus-visible {
+      color: #7fefff;
+      border-bottom-color: #ffffff;
+      outline: none;
+    }
+
+    .project-meaning-info {
+      display: inline-block;
+      margin-left: 4px;
+      color: #38d9ff;
+      font-size: 10px;
+      line-height: 1;
+      vertical-align: 1px;
+      opacity: 0.92;
+      pointer-events: none;
+    }
+
+    .project-meaning-popover {
+      position: fixed;
+      z-index: 99999;
+      display: none;
+      width: min(390px, calc(100vw - 24px));
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 217, 255, 0.72);
+      background: linear-gradient(145deg, rgba(5, 25, 58, 0.99), rgba(3, 15, 38, 0.99));
+      box-shadow:
+        0 16px 38px rgba(0, 0, 0, 0.48),
+        0 0 24px rgba(56, 217, 255, 0.16),
+        inset 0 0 20px rgba(56, 217, 255, 0.04);
+      color: #eaf4ff;
+      text-align: left;
+      pointer-events: auto;
+    }
+
+    .project-meaning-popover.is-visible {
+      display: block;
+    }
+
+    .project-meaning-popover-title {
+      margin: 0 0 8px;
+      color: #38d9ff;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .project-meaning-popover-label {
+      margin-bottom: 3px;
+      color: #8da8c7;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+    }
+
+    .project-meaning-popover-text {
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    .project-meaning-popover-hint {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(56, 217, 255, 0.14);
+      color: #8da8c7;
+      font-size: 10px;
+      line-height: 1.35;
+    }
+
     .catchup-cell {
       text-align: center;
       vertical-align: middle;
@@ -2000,6 +2091,27 @@
     const BACKGROUND_REFRESH_AGE_MS = 30 * 1000;
     const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', 'All'];
 
+
+    // ============================================================
+    // PROJECT / PROGRAM ABBREVIATION FULL NAMES
+    // Front-end display only. Edit the meanings here when needed.
+    // The left side should match the Project / Program label shown
+    // in the dashboard table.
+    // ============================================================
+    const PROJECT_NAME_MEANINGS = {
+      'COE': 'Center of Excellence',
+      'BEST': 'Boosting Education through Smart Technologies',
+      'EQUATE': 'Ensuring Quality and Advancing Teacher Education (EQUATE) II',
+      'RAMP UHC': 'Recalibrating the Allied Medical Programs for Universal Health Care (RAMP-UHC)',
+      'CHED ICI': 'Creative Industries',
+      'ECTHM': 'Enhancing Competitiveness in Tourism and Hospitality Management',
+      'INGRESS': 'Integration of Natural, Green and Renewable Energy towards Sustainable Schools',
+      'P ACE': 'Project ACE (Advancing Competencies for Excellence)',
+      'SP SF': 'Navigating the Global Landscape through Innovations, Cultural & Arts Preservation, and Higher Education Quality (SUC FAIR)',
+      'IC': 'International Commitments Towards Program Quality and Comparability and Qualifications Recognition',
+      'EQUIVALENCY': 'Degree Equivalency'
+    };
+
     let dailyExpenseChart;
     let remainingBudgetChart;
 
@@ -2088,6 +2200,7 @@
     loadLogo();
     bindMainFilters();
     bindCatchUpPlanActions();
+    bindProjectMeaningPopover();
     loadDashboard(false);
 
     window.addEventListener('resize', function() {
@@ -3136,6 +3249,188 @@
       }
     }
 
+    function getProjectNameMeaning(project) {
+      const projectText = String(project || '').trim();
+      if (!projectText) return '';
+
+      if (Object.prototype.hasOwnProperty.call(PROJECT_NAME_MEANINGS, projectText)) {
+        return PROJECT_NAME_MEANINGS[projectText];
+      }
+
+      const normalizedProject = projectText.toLowerCase();
+      const matchingKey = Object.keys(PROJECT_NAME_MEANINGS).find(key => {
+        return String(key).trim().toLowerCase() === normalizedProject;
+      });
+
+      return matchingKey ? PROJECT_NAME_MEANINGS[matchingKey] : '';
+    }
+
+    function renderProjectProgramCell(project) {
+      const projectText = String(project || '');
+      const meaning = getProjectNameMeaning(projectText);
+
+      if (!meaning) {
+        return escapeHtml(projectText);
+      }
+
+      return `
+        <button
+          class="project-meaning-trigger"
+          type="button"
+          data-project-key="${escapeHtml(projectText)}"
+          aria-label="View full name of ${escapeHtml(projectText)}"
+          aria-expanded="false"
+        >${escapeHtml(projectText)}<span class="project-meaning-info" aria-hidden="true">ⓘ</span></button>
+      `;
+    }
+
+    let projectMeaningPopover = null;
+    let activeProjectMeaningTrigger = null;
+
+    function getProjectMeaningPopover() {
+      if (projectMeaningPopover) return projectMeaningPopover;
+
+      projectMeaningPopover = document.createElement('div');
+      projectMeaningPopover.className = 'project-meaning-popover';
+      projectMeaningPopover.id = 'projectMeaningPopover';
+      projectMeaningPopover.setAttribute('role', 'dialog');
+      projectMeaningPopover.setAttribute('aria-live', 'polite');
+      document.body.appendChild(projectMeaningPopover);
+
+      return projectMeaningPopover;
+    }
+
+    function positionProjectMeaningPopover(trigger) {
+      const popover = getProjectMeaningPopover();
+      const gap = 10;
+      const viewportPadding = 10;
+      const triggerRect = trigger.getBoundingClientRect();
+      const popoverRect = popover.getBoundingClientRect();
+
+      let left = triggerRect.left;
+      let top = triggerRect.bottom + gap;
+
+      if (left + popoverRect.width > window.innerWidth - viewportPadding) {
+        left = window.innerWidth - popoverRect.width - viewportPadding;
+      }
+
+      if (left < viewportPadding) {
+        left = viewportPadding;
+      }
+
+      if (top + popoverRect.height > window.innerHeight - viewportPadding) {
+        top = triggerRect.top - popoverRect.height - gap;
+      }
+
+      if (top < viewportPadding) {
+        top = viewportPadding;
+      }
+
+      popover.style.left = Math.round(left) + 'px';
+      popover.style.top = Math.round(top) + 'px';
+    }
+
+    function showProjectMeaningPopover(trigger) {
+      const project = trigger.dataset.projectKey || '';
+      const meaning = getProjectNameMeaning(project);
+
+      if (!meaning) return;
+
+      if (activeProjectMeaningTrigger && activeProjectMeaningTrigger !== trigger) {
+        activeProjectMeaningTrigger.setAttribute('aria-expanded', 'false');
+      }
+
+      activeProjectMeaningTrigger = trigger;
+      trigger.setAttribute('aria-expanded', 'true');
+
+      const popover = getProjectMeaningPopover();
+      popover.innerHTML = `
+        <div class="project-meaning-popover-title">${escapeHtml(project)}</div>
+        <div class="project-meaning-popover-label">Full Project / Program Name</div>
+        <div class="project-meaning-popover-text">${escapeHtml(meaning)}</div>
+        <div class="project-meaning-popover-hint">Click anywhere outside to close.</div>
+      `;
+
+      popover.classList.add('is-visible');
+      positionProjectMeaningPopover(trigger);
+    }
+
+    function hideProjectMeaningPopover() {
+      if (activeProjectMeaningTrigger) {
+        activeProjectMeaningTrigger.setAttribute('aria-expanded', 'false');
+        activeProjectMeaningTrigger = null;
+      }
+
+      if (projectMeaningPopover) {
+        projectMeaningPopover.classList.remove('is-visible');
+      }
+    }
+
+    function bindProjectMeaningPopover() {
+      const tbody = document.getElementById('allocationTable');
+
+      if (!tbody || tbody.dataset.projectMeaningBound === 'true') {
+        return;
+      }
+
+      tbody.dataset.projectMeaningBound = 'true';
+
+      tbody.addEventListener('click', function(event) {
+        const trigger = event.target.closest('.project-meaning-trigger');
+
+        if (!trigger || !tbody.contains(trigger)) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (activeProjectMeaningTrigger === trigger &&
+            projectMeaningPopover &&
+            projectMeaningPopover.classList.contains('is-visible')) {
+          hideProjectMeaningPopover();
+          return;
+        }
+
+        showProjectMeaningPopover(trigger);
+      });
+
+      document.addEventListener('click', function(event) {
+        if (!projectMeaningPopover || !projectMeaningPopover.classList.contains('is-visible')) {
+          return;
+        }
+
+        if (projectMeaningPopover.contains(event.target)) {
+          return;
+        }
+
+        if (event.target.closest('.project-meaning-trigger')) {
+          return;
+        }
+
+        hideProjectMeaningPopover();
+      });
+
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+          hideProjectMeaningPopover();
+        }
+      });
+
+      window.addEventListener('resize', function() {
+        if (activeProjectMeaningTrigger &&
+            projectMeaningPopover &&
+            projectMeaningPopover.classList.contains('is-visible')) {
+          positionProjectMeaningPopover(activeProjectMeaningTrigger);
+        }
+      });
+
+      const allocationScroll = document.getElementById('allocationTableScroll');
+      if (allocationScroll) {
+        allocationScroll.addEventListener('scroll', hideProjectMeaningPopover, { passive: true });
+      }
+    }
+
     function renderAllocationTable(rows) {
       const tbody = document.getElementById('allocationTable');
       tbody.innerHTML = '';
@@ -3157,7 +3452,7 @@
         const tr = document.createElement('tr');
 
         tr.innerHTML = `
-          <td>${escapeHtml(row.project)}</td>
+          <td>${renderProjectProgramCell(row.project)}</td>
           <td>${escapeHtml(row.fundingSource || 'All')}</td>
           <td>${escapeHtml(row.quarter)}</td>
           <td>${formatPesoShort(row.allocation)}</td>
