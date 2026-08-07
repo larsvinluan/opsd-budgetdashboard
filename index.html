@@ -2079,7 +2079,7 @@
   </div>
 
   <script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGQZBXrVjq8Brhd_mgiX6H_MaIRx4ZBQtBJOikVYjzMN1v0ZvtW5xknA-IAp5u0OGM/exec';
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyygZYCC4kPlR1E3Mr33E9CV7QX157-04KVJcWaluNo8Scps9KNTri936JsFqpy3bgAlQ/exec';
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
     const AUTO_REFRESH_INTERVAL_MS = 30000;
@@ -3882,11 +3882,22 @@
     }
 
     function normalizeCatchUpProject(value) {
-      return String(value || '')
+      const normalized = String(value || '')
         .replace(/[’‘`]/g, "'")
         .trim()
         .replace(/\s+/g, ' ')
         .toLowerCase();
+
+      // Preserve existing Catch Up Plan links when the project is renamed
+      // in Google Sheets from TUGON (Implementation Audit) to PSG Implementation Audit.
+      if (
+        normalized === 'tugon (implementation audit)' ||
+        normalized === 'psg implementation audit'
+      ) {
+        return 'psg implementation audit';
+      }
+
+      return normalized;
     }
 
     function getCatchUpKey(row) {
@@ -3909,7 +3920,10 @@
 
       rows.forEach(row => {
         const originalProject = String(row.project || '').trim();
-        const projectKey = originalProject.toUpperCase().includes('PSG') ? 'PSG' : originalProject;
+        const normalizedProject = originalProject.toUpperCase();
+        const projectKey = normalizedProject === 'PSG IMPLEMENTATION AUDIT'
+          ? originalProject
+          : (normalizedProject.includes('PSG') ? 'PSG' : originalProject);
 
         if (!mergedMap[projectKey]) {
           mergedMap[projectKey] = {
@@ -4182,7 +4196,10 @@
 
       rows.forEach(row => {
         const originalProject = String(row.project || '').trim();
-        const projectKey = originalProject.toUpperCase().includes('PSG') ? 'PSG' : originalProject;
+        const normalizedProject = originalProject.toUpperCase();
+        const projectKey = normalizedProject === 'PSG IMPLEMENTATION AUDIT'
+          ? originalProject
+          : (normalizedProject.includes('PSG') ? 'PSG' : originalProject);
 
         if (!mergedMap[projectKey]) {
           mergedMap[projectKey] = {
