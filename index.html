@@ -2656,7 +2656,7 @@
       refreshActiveQuarterInBackground();
     }, AUTO_REFRESH_INTERVAL_MS);
 
-    // Synchronize quarter options with the existing Code.gs status endpoint.
+    // Keep quarter choices synchronized with the published Code.gs source list.
     syncAvailableQuartersFromBackend();
     setInterval(syncAvailableQuartersFromBackend, 2 * 60 * 1000);
 
@@ -2725,12 +2725,17 @@
     }
 
 
-    // Data-source links remain managed exclusively by Code.gs.
-    // This updates the two existing select menus only when the backend quarter list changes.
+    // Only reads the list of available quarters. All budget data still uses
+    // the original API, chart functions, calculations, and cache behavior.
     async function syncAvailableQuartersFromBackend() {
       try {
-        const status = await apiGet({ action: 'status' });
-        if (!status || !Array.isArray(status.availableQuarters)) return;
+        // Code.gs action=status returns availableQuarters at the TOP level.
+        // Do not use apiGet() here: it returns result.data instead.
+        const response = await fetch(buildApiUrl({ action: 'status' }), { method: 'GET' });
+        if (!response.ok) throw new Error('Status HTTP ' + response.status);
+        const status = await response.json();
+        if (!status || status.success !== true || !Array.isArray(status.availableQuarters)) return;
+
         const quarters = status.availableQuarters.filter(q =>
           ['1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter'].includes(q)
         );
@@ -2739,15 +2744,14 @@
         const quarterSelect = document.getElementById('mainQuarterFilter');
         const dateSelect = document.getElementById('dateRangeFilter');
         if (!quarterSelect || !dateSelect) return;
-        const currentOptions = Array.from(quarterSelect.options).map(o => o.value).filter(q => q !== 'All');
-        if (currentOptions.join('|') === quarters.join('|')) {
-          PREFETCH_QUARTERS = quarters.concat('All');
-          return;
-        }
+
+        PREFETCH_QUARTERS = quarters.concat('All');
+        const existingOptions = Array.from(quarterSelect.options).map(o => o.value).filter(q => q !== 'All');
+        if (existingOptions.join('|') === quarters.join('|')) return;
 
         const selectedQuarter = quarterSelect.value;
         const selectedDate = dateSelect.value;
-        const existingQuarterLabels = new Map(Array.from(quarterSelect.options).map(o => [o.value, o.text]));
+        const quarterLabels = new Map(Array.from(quarterSelect.options).map(o => [o.value, o.text]));
         const existingDateLabels = new Map(Array.from(dateSelect.options).map(o => [o.value, o.text]));
         const dateLabels = {
           '1st Quarter': 'Jan 1, 2026 - Mar 31, 2026',
@@ -2759,15 +2763,13 @@
         quarterSelect.replaceChildren(new Option('Annual / All Quarters', 'All'));
         dateSelect.replaceChildren(new Option('Annual / All Quarters', 'All'));
         quarters.forEach(q => {
-          quarterSelect.add(new Option(existingQuarterLabels.get(q) || q, q));
-          dateSelect.add(new Option(existingDateLabels.get(q) || dateLabels[q], q));
+          quarterSelect.add(new Option(quarterLabels.get(q) || q, q));
+          dateSelect.add(new Option(existingDateLabels.get(q) || dateLabels[q] || q, q));
         });
         quarterSelect.value = quarters.includes(selectedQuarter) ? selectedQuarter : 'All';
         dateSelect.value = quarters.includes(selectedDate) ? selectedDate : quarterSelect.value;
-        PREFETCH_QUARTERS = quarters.concat('All');
-        // Keep the original filter handlers, chart logic and cache policy unchanged.
       } catch (error) {
-        console.warn('Quarter list sync unavailable; retaining existing filters:', error);
+        console.warn('Quarter synchronization unavailable; existing controls unchanged:', error);
       }
     }
 
