@@ -2509,7 +2509,7 @@
     const BROWSER_CACHE_DB_NAME = 'OPSD_Budget_Dashboard_Cache';
     const BROWSER_CACHE_STORE_NAME = 'quarterData';
     const BROWSER_CACHE_VERSION = 1;
-    const BROWSER_CACHE_KEY_PREFIX = 'v8-20261026-fourth-quarter|';
+    const BROWSER_CACHE_KEY_PREFIX = 'v9-20261026-annual-fourth-quarter-sync|';
     const BROWSER_CACHE_MAX_STALE_MS = 24 * 60 * 60 * 1000;
     const BACKGROUND_REFRESH_AGE_MS = 30 * 1000;
     const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter', 'All'];
@@ -2824,6 +2824,35 @@
       });
     }
 
+    // When the annual source has an older/incomplete fourth-quarter snapshot,
+    // use the same fourth-quarter rows returned by the existing quarterly API.
+    // All other quarters and all calculation/rendering functions remain unchanged.
+    function reconcileAnnualFourthQuarter(annualData, fourthQuarterData) {
+      if (!annualData || !fourthQuarterData) return annualData;
+
+      const annualProjects = annualData.projectSummary || [];
+      const fourthProjects = (fourthQuarterData.projectSummary || []).filter(row =>
+        normalizeQuarterValue(row.quarter) === '4th Quarter'
+      );
+      const annualExpenses = annualData.expenseRows || [];
+      const fourthExpenses = (fourthQuarterData.expenseRows || []).filter(row =>
+        normalizeQuarterValue(row.quarter) === '4th Quarter'
+      );
+
+      // Preserve the annual result if the quarterly source returned no records.
+      if (!fourthProjects.length && !fourthExpenses.length) return annualData;
+
+      return {
+        ...annualData,
+        projectSummary: annualProjects.filter(row =>
+          normalizeQuarterValue(row.quarter) !== '4th Quarter'
+        ).concat(fourthProjects),
+        expenseRows: annualExpenses.filter(row =>
+          normalizeQuarterValue(row.quarter) !== '4th Quarter'
+        ).concat(fourthExpenses)
+      };
+    }
+
     async function fetchDashboardQuarterData(quarter, forceRefresh) {
       const normalizedQuarter = normalizeQuarterValue(quarter);
       const promiseKey = normalizedQuarter + '|' + (forceRefresh === true ? 'force' : 'normal');
@@ -2832,15 +2861,27 @@
         return dashboardFetchPromises[promiseKey];
       }
 
-      dashboardFetchPromises[promiseKey] = apiGet({
-        action: 'dashboard',
-        forceRefresh: forceRefresh === true ? 'true' : 'false',
-        fundingSource: 'All',
-        quarter: normalizedQuarter
-      }).then(async data => {
-        await writeBrowserCacheEntry(normalizedQuarter, data);
-        return data;
-      }).finally(() => {
+      dashboardFetchPromises[promiseKey] = (async () => {
+        const data = await apiGet({
+          action: 'dashboard',
+          forceRefresh: forceRefresh === true ? 'true' : 'false',
+          fundingSource: 'All',
+          quarter: normalizedQuarter
+        });
+
+        let resolvedData = data;
+        if (normalizedQuarter === 'All') {
+          try {
+            const fourthQuarterData = await fetchDashboardQuarterData('4th Quarter', forceRefresh);
+            resolvedData = reconcileAnnualFourthQuarter(data, fourthQuarterData);
+          } catch (error) {
+            console.warn('Fourth-quarter reconciliation unavailable; retaining annual API data:', error);
+          }
+        }
+
+        await writeBrowserCacheEntry(normalizedQuarter, resolvedData);
+        return resolvedData;
+      })().finally(() => {
         delete dashboardFetchPromises[promiseKey];
       });
 
@@ -2982,7 +3023,7 @@
           refreshCatchUpFilesInBackground();
           prefetchQuarterCaches(selectedQuarter);
 
-          if (cacheAge > BACKGROUND_REFRESH_AGE_MS) {
+          if (cacheAge > BACKGROUND_REFRESH_AGE_MS || selectedQuarter === 'All') {
             fetchDashboardQuarterData(selectedQuarter, false)
               .then(data => {
                 if (
@@ -3012,7 +3053,7 @@
       }
 
       try {
-        const data = await fetchDashboardQuarterData(selectedQuarter, forceRefresh === true);
+        const data = await fetchDashboardQuarterData(selectedQuarter, forceRefresh === true || selectedQuarter === 'All');
 
         if (requestToken !== activeDashboardRequestToken) return;
 
