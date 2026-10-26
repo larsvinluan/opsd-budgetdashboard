@@ -1944,7 +1944,6 @@
             <option value="1st Quarter">1st Quarter</option>
             <option value="2nd Quarter">2nd Quarter</option>
             <option value="3rd Quarter">3rd Quarter</option>
-            <option value="4th Quarter">4th Quarter</option>
           </select>
         </div>
 
@@ -1964,7 +1963,6 @@
             <option value="1st Quarter">Jan 1, 2026 - Mar 31, 2026</option>
             <option value="2nd Quarter">Apr 1, 2026 - Jun 30, 2026</option>
             <option value="3rd Quarter">Jul 1, 2026 - Sep 30, 2026</option>
-            <option value="4th Quarter">Oct 1, 2026 - Dec 31, 2026</option>
           </select>
         </div>
 
@@ -2509,10 +2507,10 @@
     const BROWSER_CACHE_DB_NAME = 'OPSD_Budget_Dashboard_Cache';
     const BROWSER_CACHE_STORE_NAME = 'quarterData';
     const BROWSER_CACHE_VERSION = 1;
-    const BROWSER_CACHE_KEY_PREFIX = 'v8-20261026-quarter-sources|';
+    const BROWSER_CACHE_KEY_PREFIX = 'v7-20260806-catchup-final|';
     const BROWSER_CACHE_MAX_STALE_MS = 24 * 60 * 60 * 1000;
     const BACKGROUND_REFRESH_AGE_MS = 30 * 1000;
-    let PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter', 'All'];
+    const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', 'All'];
 
 
     // ============================================================
@@ -2658,11 +2656,6 @@
       refreshActiveQuarterInBackground();
     }, AUTO_REFRESH_INTERVAL_MS);
 
-    // Refresh the existing filter choices when Code.gs publishes new quarters.
-    // Data charts/tables/calculations continue using the original functions.
-    syncPublishedQuarters();
-    setInterval(syncPublishedQuarters, 2 * 60 * 1000);
-
     function isWebAppUrlReady() {
       return WEB_APP_URL &&
         WEB_APP_URL !== 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_EXEC_URL_HERE' &&
@@ -2727,47 +2720,6 @@
       return result.data;
     }
 
-
-    // The Code.gs status response stores availableQuarters at the top level.
-    async function syncPublishedQuarters() {
-      try {
-        const response = await fetch(buildApiUrl({ action: 'status' }), { method: 'GET' });
-        if (!response.ok) return;
-        const result = await response.json();
-        if (!result || result.success !== true || !Array.isArray(result.availableQuarters)) return;
-
-        const quarters = result.availableQuarters.filter(q =>
-          ['1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter'].includes(q)
-        );
-        if (!quarters.length) return;
-
-        const mainSelect = document.getElementById('mainQuarterFilter');
-        const dateSelect = document.getElementById('dateRangeFilter');
-        if (!mainSelect || !dateSelect) return;
-        const currentMain = mainSelect.value;
-        const currentDate = dateSelect.value;
-        const rangeLabels = {
-          '1st Quarter': 'Jan 1, 2026 - Mar 31, 2026',
-          '2nd Quarter': 'Apr 1, 2026 - Jun 30, 2026',
-          '3rd Quarter': 'Jul 1, 2026 - Sep 30, 2026',
-          '4th Quarter': 'Oct 1, 2026 - Dec 31, 2026'
-        };
-
-        // Preserve original selects, CSS classes, callbacks and selected values.
-        quarters.forEach(q => {
-          if (!Array.from(mainSelect.options).some(o => o.value === q))
-            mainSelect.add(new Option(q, q));
-          if (!Array.from(dateSelect.options).some(o => o.value === q))
-            dateSelect.add(new Option(rangeLabels[q] || q, q));
-        });
-        mainSelect.value = currentMain;
-        dateSelect.value = currentDate;
-        PREFETCH_QUARTERS = quarters.concat('All');
-      } catch (error) {
-        // The static 2026 quarter options still work if status is unreachable.
-        console.warn('Quarter list could not be synchronized:', error);
-      }
-    }
 
     function getBrowserCacheKey(quarter) {
       return BROWSER_CACHE_KEY_PREFIX + normalizeQuarterValue(quarter);
