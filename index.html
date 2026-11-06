@@ -1944,7 +1944,6 @@
             <option value="1st Quarter">1st Quarter</option>
             <option value="2nd Quarter">2nd Quarter</option>
             <option value="3rd Quarter">3rd Quarter</option>
-            <option value="4th Quarter">4th Quarter</option>
           </select>
         </div>
 
@@ -1964,7 +1963,6 @@
             <option value="1st Quarter">Jan 1, 2026 - Mar 31, 2026</option>
             <option value="2nd Quarter">Apr 1, 2026 - Jun 30, 2026</option>
             <option value="3rd Quarter">Jul 1, 2026 - Sep 30, 2026</option>
-            <option value="4th Quarter">Oct 1, 2026 - Dec 31, 2026</option>
           </select>
         </div>
 
@@ -2509,10 +2507,10 @@
     const BROWSER_CACHE_DB_NAME = 'OPSD_Budget_Dashboard_Cache';
     const BROWSER_CACHE_STORE_NAME = 'quarterData';
     const BROWSER_CACHE_VERSION = 1;
-    const BROWSER_CACHE_KEY_PREFIX = 'v9-20261026-annual-fourth-quarter-sync|';
+    const BROWSER_CACHE_KEY_PREFIX = 'v7-20260806-catchup-final|';
     const BROWSER_CACHE_MAX_STALE_MS = 24 * 60 * 60 * 1000;
     const BACKGROUND_REFRESH_AGE_MS = 30 * 1000;
-    const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter', 'All'];
+    const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', 'All'];
 
 
     // ============================================================
@@ -2824,35 +2822,6 @@
       });
     }
 
-    // When the annual source has an older/incomplete fourth-quarter snapshot,
-    // use the same fourth-quarter rows returned by the existing quarterly API.
-    // All other quarters and all calculation/rendering functions remain unchanged.
-    function reconcileAnnualFourthQuarter(annualData, fourthQuarterData) {
-      if (!annualData || !fourthQuarterData) return annualData;
-
-      const annualProjects = annualData.projectSummary || [];
-      const fourthProjects = (fourthQuarterData.projectSummary || []).filter(row =>
-        normalizeQuarterValue(row.quarter) === '4th Quarter'
-      );
-      const annualExpenses = annualData.expenseRows || [];
-      const fourthExpenses = (fourthQuarterData.expenseRows || []).filter(row =>
-        normalizeQuarterValue(row.quarter) === '4th Quarter'
-      );
-
-      // Preserve the annual result if the quarterly source returned no records.
-      if (!fourthProjects.length && !fourthExpenses.length) return annualData;
-
-      return {
-        ...annualData,
-        projectSummary: annualProjects.filter(row =>
-          normalizeQuarterValue(row.quarter) !== '4th Quarter'
-        ).concat(fourthProjects),
-        expenseRows: annualExpenses.filter(row =>
-          normalizeQuarterValue(row.quarter) !== '4th Quarter'
-        ).concat(fourthExpenses)
-      };
-    }
-
     async function fetchDashboardQuarterData(quarter, forceRefresh) {
       const normalizedQuarter = normalizeQuarterValue(quarter);
       const promiseKey = normalizedQuarter + '|' + (forceRefresh === true ? 'force' : 'normal');
@@ -2861,27 +2830,15 @@
         return dashboardFetchPromises[promiseKey];
       }
 
-      dashboardFetchPromises[promiseKey] = (async () => {
-        const data = await apiGet({
-          action: 'dashboard',
-          forceRefresh: forceRefresh === true ? 'true' : 'false',
-          fundingSource: 'All',
-          quarter: normalizedQuarter
-        });
-
-        let resolvedData = data;
-        if (normalizedQuarter === 'All') {
-          try {
-            const fourthQuarterData = await fetchDashboardQuarterData('4th Quarter', forceRefresh);
-            resolvedData = reconcileAnnualFourthQuarter(data, fourthQuarterData);
-          } catch (error) {
-            console.warn('Fourth-quarter reconciliation unavailable; retaining annual API data:', error);
-          }
-        }
-
-        await writeBrowserCacheEntry(normalizedQuarter, resolvedData);
-        return resolvedData;
-      })().finally(() => {
+      dashboardFetchPromises[promiseKey] = apiGet({
+        action: 'dashboard',
+        forceRefresh: forceRefresh === true ? 'true' : 'false',
+        fundingSource: 'All',
+        quarter: normalizedQuarter
+      }).then(async data => {
+        await writeBrowserCacheEntry(normalizedQuarter, data);
+        return data;
+      }).finally(() => {
         delete dashboardFetchPromises[promiseKey];
       });
 
@@ -3023,7 +2980,7 @@
           refreshCatchUpFilesInBackground();
           prefetchQuarterCaches(selectedQuarter);
 
-          if (cacheAge > BACKGROUND_REFRESH_AGE_MS || selectedQuarter === 'All') {
+          if (cacheAge > BACKGROUND_REFRESH_AGE_MS) {
             fetchDashboardQuarterData(selectedQuarter, false)
               .then(data => {
                 if (
@@ -3053,7 +3010,7 @@
       }
 
       try {
-        const data = await fetchDashboardQuarterData(selectedQuarter, forceRefresh === true || selectedQuarter === 'All');
+        const data = await fetchDashboardQuarterData(selectedQuarter, forceRefresh === true);
 
         if (requestToken !== activeDashboardRequestToken) return;
 
@@ -4460,10 +4417,6 @@
 
       if (!highlight || !scrollBox || !canvasWrap || !status || !canvas) return;
 
-      // Keep the original canvas in the DOM when showing an empty-state message.
-      canvasWrap.querySelectorAll('.approved-budget-empty').forEach(message => message.remove());
-      canvas.style.display = '';
-
       if (dailyExpenseChart) {
         dailyExpenseChart.destroy();
         dailyExpenseChart = null;
@@ -4482,8 +4435,7 @@
 
       if (!chartRows.length) {
         highlight.innerHTML = '<div class="approved-budget-empty">No approved budget data found.</div>';
-        canvas.style.display = 'none';
-        canvasWrap.insertAdjacentHTML('beforeend', '<div class="approved-budget-empty">No project allocation records found.</div>');
+        canvasWrap.innerHTML = '<div class="approved-budget-empty">No project allocation records found.</div>';
         return;
       }
 
@@ -4524,9 +4476,8 @@
       const otherChartRows = chartRows.slice(1);
 
       if (!otherChartRows.length) {
-        canvas.style.display = 'none';
-        canvasWrap.insertAdjacentHTML('beforeend',
-          '<div class="approved-budget-empty">No other approved budget projects found.</div>');
+        canvasWrap.innerHTML =
+          '<div class="approved-budget-empty">No other approved budget projects found.</div>';
         status.textContent = 'Highest allocation is shown in the summary card.';
         return;
       }
